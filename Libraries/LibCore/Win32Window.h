@@ -6,8 +6,16 @@
 
 #pragma once
 
+#include <LibCore/Export.h>
+
 namespace Core {
 
-class Window;
+class CORE_API Window final {
+public:
+    Window();
+    ~Window();
+
+private:
+};
 
 }

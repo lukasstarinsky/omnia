@@ -7,7 +7,7 @@
 #pragma once
 
 #include <cstddef>
-#include "Platform.h"
+#include <Common/Platform.h>
 
 using u64 = __UINT64_TYPE__;
 using u32 = __UINT32_TYPE__;
