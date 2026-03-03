@@ -1,0 +1,53 @@
+{
+	"version": 10,
+	"include": [
+		"CMakeBasePresets.json"
+	],
+	"configurePresets": [
+		{
+			"name": "windows",
+			"hidden": true,
+			"inherits": "base",
+			"cacheVariables": {
+				"CMAKE_C_COMPILER": "clang",
+				"CMAKE_CXX_COMPILER": "clang++"
+			}
+		},
+		{
+			"name": "Debug",
+			"displayName": "Debug (Windows)",
+			"inherits": "windows",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug"
+			}
+		},
+		{
+			"name": "Release",
+			"displayName": "Release (Windows, RelWithDebInfo)",
+			"inherits": "windows",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo"
+			}
+		},
+		{
+			"name": "Distribution",
+			"displayName": "Distribution (Windows, Release)",
+			"inherits": "windows",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release"
+			}
+		},
+		{
+			"name": "Sanitizers",
+			"displayName": "Sanitizers (Windows, ASAN+UBSAN)",
+			"inherits": "windows",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo",
+				"CMAKE_C_FLAGS": "-fno-omit-frame-pointer -fsanitize=address,undefined",
+				"CMAKE_CXX_FLAGS": "-fno-omit-frame-pointer -fsanitize=address,undefined",
+				"CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address,undefined",
+				"CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=address,undefined"
+			}
+		}
+	]
+}
