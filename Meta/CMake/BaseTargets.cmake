@@ -24,3 +24,13 @@ function(omnia_lib target)
             $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
     )
 endfunction()
+
+function(omnia_app target)
+    cmake_parse_arguments(OMNIA "" "" "SOURCES;LIBS" ${ARGN})
+
+    add_executable(${target})
+
+    target_sources(${target} PRIVATE ${OMNIA_SOURCES})
+    target_link_libraries(${target} PRIVATE Common ${OMNIA_LIBS})
+    add_dependencies(${target} ${OMNIA_LIBS})
+endfunction()

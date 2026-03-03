@@ -1,12 +1,8 @@
-add_executable(Sandbox
+set(SOURCES
         Main.cpp
 )
 
-target_link_libraries(Sandbox PRIVATE
-        Common
-        LibCore
-)
-
-add_dependencies(Sandbox
-        LibCore
+omnia_app(Sandbox
+        SOURCES ${SOURCES}
+        LIBS LibCore
 )
