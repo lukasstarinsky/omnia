@@ -8,7 +8,9 @@
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/Build/${presetName}",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/Build/${presetName}",
+                "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/Build/${presetName}"
             }
         }
     ]
