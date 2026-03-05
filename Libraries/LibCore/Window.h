@@ -6,12 +6,38 @@
 
 #pragma once
 
+#include <Common/Noncopyable.h>
 #include <Common/Platform.h>
+#include <Common/Types.h>
+#include <LibCore/Export.h>
 
-#ifdef OA_OS_WINDOWS
-#    include "Win32Window.h"
-#elifdef OA_OS_LINUX
+#include <expected>
+#include <memory>
+#include <string>
 
-#elifdef OA_OS_MACOS
+namespace Core {
 
-#endif
+class Window {
+    OA_MAKE_NONCOPYABLE(Window);
+    OA_MAKE_NONMOVABLE(Window);
+
+public:
+    struct Configuration {
+        std::string title;
+        i32 width;
+        i32 height;
+    };
+
+    Window() = default;
+    virtual ~Window() = default;
+
+    virtual void poll_events() = 0;
+    virtual auto is_running() const -> bool = 0;
+    virtual auto title() const -> std::string const& = 0;
+    virtual auto width() const -> i32 = 0;
+    virtual auto height() const -> i32 = 0;
+
+    static auto CORE_API create(Configuration const& config) -> std::expected<std::unique_ptr<Window>, std::string>;
+};
+
+}
