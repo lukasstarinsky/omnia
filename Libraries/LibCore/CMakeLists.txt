@@ -1,4 +1,5 @@
 set(SOURCES
+        Input.cpp
 )
 
 if (WIN32)

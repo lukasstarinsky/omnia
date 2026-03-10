@@ -6,8 +6,8 @@
 
 #include "Win32Window.h"
 
-#include <Windows.h>
-#include <bit>
+#include <windows.h>
+#include <windowsx.h>
 
 namespace Core {
 
@@ -57,6 +57,16 @@ auto Win32Window::create(Configuration const& config) -> std::expected<std::uniq
     }
     ShowWindow(window->m_handle, SW_SHOW);
 
+    RAWINPUTDEVICE const raw_input_device {
+        .usUsagePage = 0x01,
+        .usUsage = 0x02,
+        .dwFlags = 0,
+        .hwndTarget = nullptr
+    };
+    if (RegisterRawInputDevices(&raw_input_device, 1, sizeof(raw_input_device)) == FALSE) {
+        return std::unexpected("Failed to register raw input device.");
+    }
+
     return window;
 }
 
@@ -71,11 +81,11 @@ auto Win32Window::window_procedure(HWND window_handle, u32 message, u64 first_pa
     Win32Window* window {};
 
     if (message == WM_NCCREATE) {
-        auto* create_struct = std::bit_cast<CREATESTRUCT*>(second_param);
+        auto* create_struct = reinterpret_cast<CREATESTRUCT*>(second_param);
         window = static_cast<Win32Window*>(create_struct->lpCreateParams);
-        SetWindowLongPtr(window_handle, GWLP_USERDATA, std::bit_cast<LONG_PTR>(window));
+        SetWindowLongPtr(window_handle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(window));
     } else {
-        window = std::bit_cast<Win32Window*>(GetWindowLongPtr(window_handle, GWLP_USERDATA));
+        window = reinterpret_cast<Win32Window*>(GetWindowLongPtr(window_handle, GWLP_USERDATA));
     }
 
     if (window != nullptr && window->handle_message(message, first_param, second_param)) {
@@ -85,7 +95,7 @@ auto Win32Window::window_procedure(HWND window_handle, u32 message, u64 first_pa
     return DefWindowProc(window_handle, message, first_param, second_param);
 }
 
-auto Win32Window::handle_message(u32 message, [[maybe_unused]] u64 first_param, [[maybe_unused]] i64 second_param) -> bool
+auto Win32Window::handle_message(u32 message, u64 first_param, i64 second_param) -> bool
 {
     switch (message) {
     case WM_CLOSE:
@@ -94,6 +104,66 @@ auto Win32Window::handle_message(u32 message, [[maybe_unused]] u64 first_param, 
     case WM_DESTROY:
         PostQuitMessage(0);
         return true;
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+    case WM_KEYUP:
+    case WM_SYSKEYUP: {
+        auto const is_pressed = (message == WM_KEYDOWN || message == WM_SYSKEYDOWN);
+        auto const was_pressed = (second_param & (1 << 30)) != 0;
+
+        m_input.handle_key(static_cast<Input::Key>(first_param), is_pressed, was_pressed);
+        return true;
+    }
+    case WM_LBUTTONDOWN:
+    case WM_RBUTTONDOWN:
+    case WM_MBUTTONDOWN:
+    case WM_LBUTTONUP:
+    case WM_RBUTTONUP:
+    case WM_MBUTTONUP: {
+        auto const is_pressed = (message == WM_LBUTTONDOWN || message == WM_RBUTTONDOWN || message == WM_MBUTTONDOWN);
+
+        auto button = Input::MouseButton::Middle;
+        switch (message) {
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONUP:
+            button = Input::MouseButton::Left;
+            break;
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONUP:
+            button = Input::MouseButton::Right;
+            break;
+        case WM_MBUTTONDOWN:
+        case WM_MBUTTONUP:
+            button = Input::MouseButton::Middle;
+            break;
+        }
+
+        auto const x = GET_X_LPARAM(second_param);
+        auto const y = GET_Y_LPARAM(second_param);
+        m_input.handle_mouse_button(button, is_pressed, { x, y });
+        return true;
+    }
+    case WM_MOUSEMOVE: {
+        auto const x = GET_X_LPARAM(second_param);
+        auto const y = GET_Y_LPARAM(second_param);
+        m_input.handle_mouse_move({ x, y });
+        return true;
+    }
+    case WM_INPUT: {
+        u32 data_size = 0;
+        GetRawInputData(reinterpret_cast<HRAWINPUT>(second_param), RID_INPUT, nullptr, &data_size, sizeof(RAWINPUTHEADER));
+        if (data_size > 0) {
+            std::vector<std::byte> raw_buffer(data_size);
+            if (GetRawInputData(reinterpret_cast<HRAWINPUT>(second_param), RID_INPUT, raw_buffer.data(), &data_size, sizeof(RAWINPUTHEADER)) == data_size) {
+                auto* raw_input = reinterpret_cast<RAWINPUT*>(raw_buffer.data());
+                if (raw_input->header.dwType == RIM_TYPEMOUSE) {
+                    auto const delta_x = raw_input->data.mouse.lLastX;
+                    auto const delta_y = raw_input->data.mouse.lLastY;
+                    m_input.handle_mouse_delta({ delta_x, delta_y });
+                }
+            }
+        }
+    }
     default:
         return false;
     }
@@ -106,6 +176,11 @@ void Win32Window::poll_events()
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+}
+
+auto Win32Window::input() -> Input&
+{
+    return m_input;
 }
 
 auto Win32Window::is_running() const -> bool

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "Input.h"
 #include <Common/Noncopyable.h>
 #include <Common/Platform.h>
 #include <Common/Types.h>
@@ -32,6 +33,7 @@ public:
     virtual ~Window() = default;
 
     virtual void poll_events() = 0;
+    virtual auto input() -> Input& = 0;
     virtual auto is_running() const -> bool = 0;
     virtual auto title() const -> std::string const& = 0;
     virtual auto width() const -> i32 = 0;
