@@ -1,5 +1,5 @@
 set(SOURCES
-        main.cpp
+        Temp.cpp
 )
 
 omnia_lib(LibMath
