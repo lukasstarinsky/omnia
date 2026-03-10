@@ -6,7 +6,7 @@
         "patch": 0
     },
     "include": [
-        "Meta/CMake/presets/CMake${hostSystemName}Presets.json"
+        "Meta/CMake/Presets/CMake${hostSystemName}Presets.json"
     ],
     "buildPresets": [
         {
