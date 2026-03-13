@@ -1,0 +1,27 @@
+/*
+ *  Copyright (c) 2026, the Omnia developers
+ *
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
+#include "DX12Shader.h"
+
+namespace Graphics {
+
+auto DX12Shader::create(Configuration const& config) -> std::expected<std::unique_ptr<DX12Shader>, std::string>
+{
+    std::unique_ptr<DX12Shader> shader(new DX12Shader);
+    shader->m_config = config;
+    return shader;
+}
+
+DX12Shader::~DX12Shader()
+{
+}
+
+auto DX12Shader::config() const -> Configuration const&
+{
+    return m_config;
+}
+
+}

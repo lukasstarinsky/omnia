@@ -6,6 +6,13 @@
 
 #pragma once
 
-namespace Engine {
+namespace Graphics {
+
+class Buffer;
+class Device;
+class Renderer;
+class Shader;
+class Swapchain;
+class Texture;
 
 }
