@@ -2,12 +2,15 @@ include(CMakeParseArguments)
 include(GenerateExportHeader)
 
 function(omnia_lib target)
-    cmake_parse_arguments(OMNIA "" "" "SOURCES" ${ARGN})
+    cmake_parse_arguments(OMNIA "" "" "SOURCES;LIBS" ${ARGN})
 
     add_library(${target})
 
     target_sources(${target} PRIVATE ${OMNIA_SOURCES})
-    target_link_libraries(${target} PUBLIC Common)
+    target_link_libraries(${target} PUBLIC Common PRIVATE ${OMNIA_LIBS})
+    if (OMNIA_LIBS)
+        add_dependencies(${target} ${OMNIA_LIBS})
+    endif ()
 
     string(REGEX REPLACE "^Lib" "" short_name ${target})
     string(TOUPPER ${short_name} short_name_upper)
@@ -32,5 +35,7 @@ function(omnia_app target)
 
     target_sources(${target} PRIVATE ${OMNIA_SOURCES})
     target_link_libraries(${target} PRIVATE Common ${OMNIA_LIBS})
-    add_dependencies(${target} ${OMNIA_LIBS})
+    if (OMNIA_LIBS)
+        add_dependencies(${target} ${OMNIA_LIBS})
+    endif ()
 endfunction()
