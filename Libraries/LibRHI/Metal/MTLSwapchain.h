@@ -8,7 +8,6 @@
 
 #include "Swapchain.h"
 #include <Common/Noncopyable.h>
-#include <LibUI/Forward.h>
 
 #include <expected>
 #include <memory>
@@ -21,7 +20,7 @@ class MTLSwapchain final : public Swapchain {
     OA_MAKE_NONMOVABLE(MTLSwapchain);
 
 public:
-    static auto create(UI::Window* window, Configuration const& config) -> std::expected<std::unique_ptr<MTLSwapchain>, std::string>;
+    static auto create(Configuration const& config) -> std::expected<std::unique_ptr<MTLSwapchain>, std::string>;
 
     ~MTLSwapchain() override;
 

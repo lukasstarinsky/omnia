@@ -31,14 +31,20 @@ public:
 
         sandbox->m_window = std::move(window.value());
 
-        auto graphics_device = RHI::Device::create(RHI::Device::API::Vulkan);
+        RHI::Device::Configuration const device_config {
+            .api = RHI::Device::API::Vulkan,
+            .enable_debug_layer = true,
+            .window = sandbox->m_window.get()
+        };
+        auto graphics_device = RHI::Device::create(device_config);
         if (!graphics_device.has_value()) {
             std::println(stderr, "Failed to create graphics device: {}.", graphics_device.error());
             return std::nullopt;
         }
+
         sandbox->m_graphics_device = std::move(graphics_device.value());
 
-        auto swapchain = sandbox->m_graphics_device->create_swapchain(sandbox->m_window.get(), {});
+        auto swapchain = sandbox->m_graphics_device->create_swapchain({});
         if (!swapchain.has_value()) {
             std::println(stderr, "Failed to create swapchain: {}.", swapchain.error());
             return std::nullopt;

@@ -32,13 +32,19 @@ public:
         Metal
     };
 
-    static auto RHI_API create(API api) -> std::expected<std::unique_ptr<Device>, std::string>;
+    struct Configuration {
+        API api;
+        bool enable_debug_layer;
+        UI::Window const* window;
+    };
+
+    static auto RHI_API create(Configuration const& config) -> std::expected<std::unique_ptr<Device>, std::string>;
 
     virtual ~Device() = default;
 
     virtual auto create_buffer(Buffer::Configuration const& config) const -> std::expected<std::unique_ptr<Buffer>, std::string> = 0;
     virtual auto create_shader(Shader::Configuration const& config) const -> std::expected<std::unique_ptr<Shader>, std::string> = 0;
-    virtual auto create_swapchain(UI::Window* window, Swapchain::Configuration const& config) const -> std::expected<std::unique_ptr<Swapchain>, std::string> = 0;
+    virtual auto create_swapchain(Swapchain::Configuration const& config) const -> std::expected<std::unique_ptr<Swapchain>, std::string> = 0;
     virtual auto create_texture(Texture::Configuration const& config) const -> std::expected<std::unique_ptr<Texture>, std::string> = 0;
 protected:
     Device() = default;

@@ -8,9 +8,8 @@
 
 namespace RHI {
 
-auto VkSwapchain::create(UI::Window* window, Configuration const& config) -> std::expected<std::unique_ptr<VkSwapchain>, std::string>
+auto VkSwapchain::create(Configuration const& config) -> std::expected<std::unique_ptr<VkSwapchain>, std::string>
 {
-    (void)window;
     (void)config;
     std::unique_ptr<VkSwapchain> swapchain(new VkSwapchain);
     return swapchain;

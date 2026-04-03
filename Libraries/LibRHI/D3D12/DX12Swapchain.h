@@ -8,7 +8,6 @@
 
 #include "Swapchain.h"
 #include <Common/Noncopyable.h>
-#include <LibUI/Forward.h>
 
 #include <expected>
 #include <memory>
@@ -21,7 +20,7 @@ class DX12Swapchain final : public Swapchain {
     OA_MAKE_NONMOVABLE(DX12Swapchain);
 
 public:
-    static auto create(UI::Window* window, Configuration const& config) -> std::expected<std::unique_ptr<DX12Swapchain>, std::string>;
+    static auto create(Configuration const& config) -> std::expected<std::unique_ptr<DX12Swapchain>, std::string>;
 
     ~DX12Swapchain() override;
 

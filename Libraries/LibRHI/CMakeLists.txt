@@ -20,6 +20,14 @@ set(SOURCES
         D3D12/DX12Texture.cpp
 )
 
+find_package(Vulkan REQUIRED)
+
+if (WIN32)
+    add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR)
+endif()
+
 omnia_lib(LibRHI
         SOURCES ${SOURCES}
+        LIBS LibUI
+        THIRD_PARTY PRIVATE Vulkan::Vulkan
 )

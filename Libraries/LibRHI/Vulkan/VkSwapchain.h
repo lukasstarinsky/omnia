@@ -8,7 +8,6 @@
 
 #include "Swapchain.h"
 #include <Common/Noncopyable.h>
-#include <LibUI/Forward.h>
 
 #include <expected>
 #include <memory>
@@ -21,7 +20,7 @@ class VkSwapchain final : public Swapchain {
     OA_MAKE_NONMOVABLE(VkSwapchain);
 
 public:
-    static auto create(UI::Window* window, Configuration const& config) -> std::expected<std::unique_ptr<VkSwapchain>, std::string>;
+    static auto create(Configuration const& config) -> std::expected<std::unique_ptr<VkSwapchain>, std::string>;
 
     ~VkSwapchain() override;
 

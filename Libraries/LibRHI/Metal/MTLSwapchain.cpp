@@ -8,9 +8,8 @@
 
 namespace RHI {
 
-auto MTLSwapchain::create(UI::Window* window, Configuration const& config) -> std::expected<std::unique_ptr<MTLSwapchain>, std::string>
+auto MTLSwapchain::create(Configuration const& config) -> std::expected<std::unique_ptr<MTLSwapchain>, std::string>
 {
-    (void)window;
     (void)config;
     std::unique_ptr<MTLSwapchain> swapchain(new MTLSwapchain);
     return swapchain;

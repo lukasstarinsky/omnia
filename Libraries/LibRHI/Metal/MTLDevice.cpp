@@ -28,9 +28,9 @@ auto MTLDevice::create_shader(Shader::Configuration const& config) const -> std:
     return MTLShader::create(config);
 }
 
-auto MTLDevice::create_swapchain(UI::Window* window, Swapchain::Configuration const& config) const -> std::expected<std::unique_ptr<Swapchain>, std::string>
+auto MTLDevice::create_swapchain(Swapchain::Configuration const& config) const -> std::expected<std::unique_ptr<Swapchain>, std::string>
 {
-    return MTLSwapchain::create(window, config);
+    return MTLSwapchain::create(config);
 }
 
 auto MTLDevice::create_texture(Texture::Configuration const& config) const -> std::expected<std::unique_ptr<Texture>, std::string>

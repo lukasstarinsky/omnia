@@ -5,20 +5,17 @@
  */
 
 #include "Device.h"
-
 #include "D3D12/DX12Device.h"
 #include "Metal/MTLDevice.h"
 #include "Vulkan/VkDevice.h"
 
-#include <format>
-
 namespace RHI {
 
-auto Device::create(API api) -> std::expected<std::unique_ptr<Device>, std::string>
+auto Device::create(Configuration const& config) -> std::expected<std::unique_ptr<Device>, std::string>
 {
-    switch (api) {
+    switch (config.api) {
     case API::Vulkan:
-        return VkDevice::create();
+        return VkDevice::create(config);
     case API::D3D12:
         return DX12Device::create();
     case API::Metal:
