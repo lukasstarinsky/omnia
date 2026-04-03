@@ -218,4 +218,14 @@ auto WindowWin32::height() const -> i32
     return m_config.height;
 }
 
+auto WindowWin32::instance() const -> HINSTANCE
+{
+    return m_instance;
+}
+
+auto WindowWin32::handle() const -> HWND
+{
+    return m_handle;
+}
+
 }

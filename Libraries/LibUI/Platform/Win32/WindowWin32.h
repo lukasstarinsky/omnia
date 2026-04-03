@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include "Platform/Input.h"
-#include "Platform/Window.h"
 #include <Common/Noncopyable.h>
 #include <Common/Types.h>
+#include <LibUI/Platform/Input.h>
+#include <LibUI/Platform/Window.h>
 
 #include <expected>
 #include <memory>
@@ -37,12 +37,16 @@ public:
     auto width() const -> i32 override;
     auto height() const -> i32 override;
 
+    auto UI_API instance() const -> HINSTANCE;
+    auto UI_API handle() const -> HWND;
+
     static auto create(Configuration const& config) -> std::expected<std::unique_ptr<WindowWin32>, std::string>;
 private:
     WindowWin32() = default;
 
     static auto window_procedure(HWND window_handle, u32 message, u64 first_param, i64 second_param) -> i64;
     auto handle_message(u32 message, u64 first_param, i64 second_param) -> bool;
+
 private:
     Input m_input {};
     HWND m_handle {};
