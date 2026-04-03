@@ -4,5 +4,5 @@ set(SOURCES
 
 omnia_app(Sandbox
         SOURCES ${SOURCES}
-        LIBS LibUI LibGraphics
+        LIBS LibUI LibRHI
 )

@@ -5,7 +5,7 @@
  */
 
 #include <Common/Types.h>
-#include <LibGraphics/Device.h>
+#include <LibRHI/Device.h>
 #include <LibUI/Platform/Event.h>
 #include <LibUI/Platform/Window.h>
 
@@ -31,7 +31,7 @@ public:
 
         sandbox->m_window = std::move(window.value());
 
-        auto graphics_device = Graphics::Device::create(Graphics::Renderer::API::Vulkan);
+        auto graphics_device = RHI::Device::create(RHI::Device::API::Vulkan);
         if (!graphics_device.has_value()) {
             std::println(stderr, "Failed to create graphics device: {}.", graphics_device.error());
             return std::nullopt;
@@ -44,7 +44,6 @@ public:
             return std::nullopt;
         }
         sandbox->m_swapchain = std::move(swapchain.value());
-        sandbox->m_renderer = std::make_unique<Graphics::Renderer>(sandbox->m_graphics_device.get(), sandbox->m_swapchain.get());
 
         UI::EventDispatcher::register_listener<UI::KeyEvent>([](UI::KeyEvent const&) -> bool {
             std::println("Key event received!");
@@ -78,9 +77,6 @@ public:
                 std::println("Input polling: Left mouse button is down!");
             }
 
-            m_renderer->begin_frame();
-            m_renderer->end_frame();
-
             m_swapchain->present();
         }
     }
@@ -88,9 +84,8 @@ private:
     Sandbox() = default;
 private:
     std::unique_ptr<UI::Window> m_window {};
-    std::unique_ptr<Graphics::Device> m_graphics_device {};
-    std::unique_ptr<Graphics::Swapchain> m_swapchain {};
-    std::unique_ptr<Graphics::Renderer> m_renderer {};
+    std::unique_ptr<RHI::Device> m_graphics_device {};
+    std::unique_ptr<RHI::Swapchain> m_swapchain {};
 };
 
 auto main() -> i32
