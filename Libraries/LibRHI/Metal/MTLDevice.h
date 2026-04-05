@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include "Device.h"
 #include <Common/Noncopyable.h>
+#include <LibRHI/Device.h>
 
 namespace RHI {
 
-class MTLDevice final: public Device {
+class MTLDevice final : public Device {
     OA_MAKE_NONCOPYABLE(MTLDevice);
     OA_MAKE_NONMOVABLE(MTLDevice);
 

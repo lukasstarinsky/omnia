@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "MTLSwapchain.h"
+#include <LibRHI/Metal/MTLSwapchain.h>
 
 namespace RHI {
 

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "VkSwapchain.h"
+#include <LibRHI/Vulkan/VkSwapchain.h>
 
 namespace RHI {
 

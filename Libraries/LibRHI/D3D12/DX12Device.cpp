@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "DX12Device.h"
-#include "DX12Buffer.h"
-#include "DX12Shader.h"
-#include "DX12Swapchain.h"
-#include "DX12Texture.h"
+#include <LibRHI/D3D12/DX12Buffer.h>
+#include <LibRHI/D3D12/DX12Device.h>
+#include <LibRHI/D3D12/DX12Shader.h>
+#include <LibRHI/D3D12/DX12Swapchain.h>
+#include <LibRHI/D3D12/DX12Texture.h>
 
 namespace RHI {
 

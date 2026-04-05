@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "VkTexture.h"
+#include <LibRHI/Vulkan/VkTexture.h>
 
 namespace RHI {
 

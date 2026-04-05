@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "DX12Texture.h"
+#include <LibRHI/D3D12/DX12Texture.h>
 
 namespace RHI {
 

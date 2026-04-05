@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include "Swapchain.h"
-#include <Common/Noncopyable.h>
-
 #include <expected>
 #include <memory>
 #include <string>
+
+#include <Common/Noncopyable.h>
+#include <LibRHI/Swapchain.h>
 
 namespace RHI {
 
@@ -25,7 +25,7 @@ public:
     ~DX12Swapchain() override;
 
     void present() override;
-    auto config() const -> const Configuration& override;
+    auto config() const -> Configuration const& override;
 private:
     DX12Swapchain() = default;
 private:

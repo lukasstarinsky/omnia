@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include "Texture.h"
-#include <Common/Noncopyable.h>
-
 #include <expected>
 #include <memory>
 #include <string>
+
+#include <Common/Noncopyable.h>
+#include <LibRHI/Texture.h>
 
 namespace RHI {
 

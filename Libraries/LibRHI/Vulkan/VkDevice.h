@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include "Device.h"
-#include "VkCommon.hpp"
 #include <Common/Noncopyable.h>
+#include <LibRHI/Device.h>
+#include <LibRHI/Vulkan/VkCommon.hpp>
 
 namespace RHI {
 

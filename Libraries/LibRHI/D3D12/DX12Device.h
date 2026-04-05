@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "Device.h"
 #include <Common/Noncopyable.h>
+#include <LibRHI/Device.h>
 
 namespace RHI {
 

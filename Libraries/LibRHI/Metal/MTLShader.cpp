@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "MTLShader.h"
+#include <LibRHI/Metal/MTLShader.h>
 
 namespace RHI {
 

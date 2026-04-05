@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "MTLDevice.h"
-#include "MTLBuffer.h"
-#include "MTLShader.h"
-#include "MTLSwapchain.h"
-#include "MTLTexture.h"
+#include <LibRHI/Metal/MTLDevice.h>
+#include <LibRHI/Metal/MTLBuffer.h>
+#include <LibRHI/Metal/MTLShader.h>
+#include <LibRHI/Metal/MTLSwapchain.h>
+#include <LibRHI/Metal/MTLTexture.h>
 
 namespace RHI {
 

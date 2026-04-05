@@ -4,18 +4,19 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "VkDevice.h"
-#include "VkBuffer.h"
-#include "VkShader.h"
-#include "VkSwapchain.h"
-#include "VkTexture.h"
-#ifdef OA_OS_WINDOWS
-#    include <LibUI/Platform/Win32/WindowWin32.h>
-#endif
-
 #include <format>
 #include <print>
 #include <vector>
+
+#include <LibRHI/Vulkan/VkBuffer.h>
+#include <LibRHI/Vulkan/VkCommon.hpp>
+#include <LibRHI/Vulkan/VkDevice.h>
+#include <LibRHI/Vulkan/VkShader.h>
+#include <LibRHI/Vulkan/VkSwapchain.h>
+#include <LibRHI/Vulkan/VkTexture.h>
+#ifdef OA_OS_WINDOWS
+#    include <LibUI/Platform/Win32/WindowWin32.h>
+#endif
 
 namespace RHI {
 

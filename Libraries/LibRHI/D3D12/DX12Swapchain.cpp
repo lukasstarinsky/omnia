@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "DX12Swapchain.h"
+#include <LibRHI/D3D12/DX12Swapchain.h>
 
 namespace RHI {
 

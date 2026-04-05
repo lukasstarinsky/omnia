@@ -6,13 +6,13 @@
 
 #pragma once
 
-#include "Buffer.h"
-#include "Shader.h"
-#include "Swapchain.h"
-#include "Texture.h"
 #include <Common/Noncopyable.h>
 #include <Common/Types.h>
+#include <LibRHI/Buffer.h>
 #include <LibRHI/Export.h>
+#include <LibRHI/Shader.h>
+#include <LibRHI/Swapchain.h>
+#include <LibRHI/Texture.h>
 #include <LibUI/Forward.h>
 
 #include <expected>

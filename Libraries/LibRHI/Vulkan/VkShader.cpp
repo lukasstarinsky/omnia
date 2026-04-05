@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "VkShader.h"
+#include <LibRHI/Vulkan/VkShader.h>
 
 namespace RHI {
 

@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "Device.h"
-#include "D3D12/DX12Device.h"
-#include "Metal/MTLDevice.h"
-#include "Vulkan/VkDevice.h"
+#include <LibRHI/D3D12/DX12Device.h>
+#include <LibRHI/Device.h>
+#include <LibRHI/Metal/MTLDevice.h>
+#include <LibRHI/Vulkan/VkDevice.h>
 
 namespace RHI {
 
