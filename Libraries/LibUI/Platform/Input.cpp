@@ -5,7 +5,7 @@
  */
 
 #include <LibUI/Platform/Input.h>
-#include <LibUi/Platform/Event.h>
+#include <LibUI/Platform/Event.h>
 
 namespace UI {
 
