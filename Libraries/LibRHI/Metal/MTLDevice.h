@@ -18,6 +18,11 @@ class MTLDevice final : public Device {
 public:
     static auto create() -> std::expected<std::unique_ptr<MTLDevice>, std::string>;
 
+    ~MTLDevice() override;
+
+    auto physical_devices() const -> std::vector<std::string_view> override;
+    auto select_physical_device(std::string_view name) -> bool override;
+
     auto create_buffer(Buffer::Configuration const& config) const -> std::expected<std::unique_ptr<Buffer>, std::string> override;
     auto create_shader(Shader::Configuration const& config) const -> std::expected<std::unique_ptr<Shader>, std::string> override;
     auto create_swapchain(Swapchain::Configuration const& config) const -> std::expected<std::unique_ptr<Swapchain>, std::string> override;

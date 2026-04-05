@@ -3,6 +3,7 @@ set(SOURCES
 
         Vulkan/VkBuffer.cpp
         Vulkan/VkDevice.cpp
+        Vulkan/VkPhysicalDevice.cpp
         Vulkan/VkShader.cpp
         Vulkan/VkSwapchain.cpp
         Vulkan/VkTexture.cpp

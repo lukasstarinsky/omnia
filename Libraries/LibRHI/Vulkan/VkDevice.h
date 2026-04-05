@@ -6,9 +6,12 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include <Common/Noncopyable.h>
 #include <LibRHI/Device.h>
-#include <LibRHI/Vulkan/VkCommon.hpp>
+#include <LibRHI/Vulkan/VkCommon.h>
+#include <LibRHI/Vulkan/VkPhysicalDevice.h>
 
 namespace RHI {
 
@@ -21,6 +24,9 @@ public:
 
     ~VkDevice() override;
 
+    auto physical_devices() const -> std::vector<std::string_view> override;
+    auto select_physical_device(std::string_view name) -> bool override;
+
     auto create_buffer(Buffer::Configuration const& config) const -> std::expected<std::unique_ptr<Buffer>, std::string> override;
     auto create_shader(Shader::Configuration const& config) const -> std::expected<std::unique_ptr<Shader>, std::string> override;
     auto create_swapchain(Swapchain::Configuration const& config) const -> std::expected<std::unique_ptr<Swapchain>, std::string> override;
@@ -31,6 +37,8 @@ private:
     VkInstance m_instance {};
     VkSurfaceKHR m_surface {};
     VkDebugUtilsMessengerEXT m_debug_messenger {};
+    RHI::VkPhysicalDevice* m_physical_device {};
+    std::unordered_map<std::string_view, RHI::VkPhysicalDevice> m_physical_devices {};
 };
 
 }

@@ -18,6 +18,7 @@
 #include <expected>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace RHI {
 
@@ -41,6 +42,9 @@ public:
     static auto RHI_API create(Configuration const& config) -> std::expected<std::unique_ptr<Device>, std::string>;
 
     virtual ~Device() = default;
+
+    virtual auto physical_devices() const -> std::vector<std::string_view> = 0;
+    virtual auto select_physical_device(std::string_view name) -> bool = 0;
 
     virtual auto create_buffer(Buffer::Configuration const& config) const -> std::expected<std::unique_ptr<Buffer>, std::string> = 0;
     virtual auto create_shader(Shader::Configuration const& config) const -> std::expected<std::unique_ptr<Shader>, std::string> = 0;

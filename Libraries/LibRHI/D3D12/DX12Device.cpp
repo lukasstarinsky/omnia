@@ -18,6 +18,21 @@ auto DX12Device::create() -> std::expected<std::unique_ptr<DX12Device>, std::str
     return device;
 }
 
+DX12Device::~DX12Device()
+{
+}
+
+auto DX12Device::physical_devices() const -> std::vector<std::string_view>
+{
+    return {};
+}
+
+auto DX12Device::select_physical_device(std::string_view name) -> bool
+{
+    (void)name;
+    return false;
+}
+
 auto DX12Device::create_buffer(Buffer::Configuration const& config) const -> std::expected<std::unique_ptr<Buffer>, std::string>
 {
     return DX12Buffer::create(config);

@@ -44,11 +44,19 @@ public:
 
         sandbox->m_graphics_device = std::move(graphics_device.value());
 
+        for (auto const& device_name : sandbox->m_graphics_device->physical_devices()) {
+            if (sandbox->m_graphics_device->select_physical_device(device_name)) {
+                std::println("Selected physical device: {}.", device_name);
+                break;
+            }
+        }
+
         auto swapchain = sandbox->m_graphics_device->create_swapchain({});
         if (!swapchain.has_value()) {
             std::println(stderr, "Failed to create swapchain: {}.", swapchain.error());
             return std::nullopt;
         }
+
         sandbox->m_swapchain = std::move(swapchain.value());
 
         UI::EventDispatcher::register_listener<UI::KeyEvent>([](UI::KeyEvent const&) -> bool {

@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include <LibRHI/Metal/MTLDevice.h>
 #include <LibRHI/Metal/MTLBuffer.h>
+#include <LibRHI/Metal/MTLDevice.h>
 #include <LibRHI/Metal/MTLShader.h>
 #include <LibRHI/Metal/MTLSwapchain.h>
 #include <LibRHI/Metal/MTLTexture.h>
@@ -16,6 +16,21 @@ auto MTLDevice::create() -> std::expected<std::unique_ptr<MTLDevice>, std::strin
 {
     std::unique_ptr<MTLDevice> device(new MTLDevice);
     return device;
+}
+
+MTLDevice::~MTLDevice()
+{
+}
+
+auto MTLDevice::physical_devices() const -> std::vector<std::string_view>
+{
+    return {};
+}
+
+auto MTLDevice::select_physical_device(std::string_view name) -> bool
+{
+    (void)name;
+    return false;
 }
 
 auto MTLDevice::create_buffer(Buffer::Configuration const& config) const -> std::expected<std::unique_ptr<Buffer>, std::string>

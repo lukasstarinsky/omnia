@@ -9,7 +9,7 @@
 #include <vector>
 
 #include <LibRHI/Vulkan/VkBuffer.h>
-#include <LibRHI/Vulkan/VkCommon.hpp>
+#include <LibRHI/Vulkan/VkCommon.h>
 #include <LibRHI/Vulkan/VkDevice.h>
 #include <LibRHI/Vulkan/VkShader.h>
 #include <LibRHI/Vulkan/VkSwapchain.h>
@@ -135,6 +135,28 @@ auto VkDevice::create(Configuration const& config) -> std::expected<std::unique_
     }
 #endif
 
+    u32 device_count = 0;
+    if (auto result = vkEnumeratePhysicalDevices(device->m_instance, &device_count, nullptr); result != VK_SUCCESS) {
+        return std::unexpected(std::format("Failed to retrieve Vulkan physical devices: {}", string_VkResult(result)));
+    }
+    if (device_count == 0) {
+        return std::unexpected("No Vulkan physical devices found.");
+    }
+    std::vector<::VkPhysicalDevice> physical_devices(device_count);
+    if (auto result = vkEnumeratePhysicalDevices(device->m_instance, &device_count, physical_devices.data()); result != VK_SUCCESS) {
+        return std::unexpected(std::format("Failed to retrieve Vulkan physical devices: {}", string_VkResult(result)));
+    }
+
+    for (auto const& vk_device : physical_devices) {
+        RHI::VkPhysicalDevice physical_device(vk_device, device->m_surface);
+        if (physical_device.is_suitable()) {
+            device->m_physical_devices[physical_device.name()] = std::move(physical_device);
+        }
+    }
+    if (device->m_physical_devices.empty() || !device->select_physical_device(device->m_physical_devices.begin()->first)) {
+        return std::unexpected("No suitable Vulkan physical devices found.");
+    }
+
     return device;
 }
 
@@ -150,6 +172,29 @@ VkDevice::~VkDevice()
     if (m_instance != nullptr) {
         vkDestroyInstance(m_instance, nullptr);
     }
+}
+
+auto VkDevice::physical_devices() const -> std::vector<std::string_view>
+{
+    std::vector<std::string_view> device_names;
+    for (auto const& [name, _] : m_physical_devices) {
+        device_names.push_back(name);
+    }
+    return device_names;
+}
+
+auto VkDevice::select_physical_device(std::string_view name) -> bool
+{
+    if (m_physical_device != nullptr && m_physical_device->name() == name) {
+        return true;
+    }
+
+    auto it = m_physical_devices.find(name);
+    if (it == m_physical_devices.end()) {
+        return false;
+    }
+    m_physical_device = &it->second;
+    return true;
 }
 
 auto VkDevice::create_buffer(Buffer::Configuration const& config) const -> std::expected<std::unique_ptr<Buffer>, std::string>
