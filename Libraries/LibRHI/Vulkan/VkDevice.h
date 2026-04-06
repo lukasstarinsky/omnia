@@ -33,11 +33,17 @@ public:
     auto create_texture(Texture::Configuration const& config) const -> std::expected<std::unique_ptr<Texture>, std::string> override;
 private:
     VkDevice() = default;
+
+    auto recreate_logical_device() -> bool;
+    void release_logical_device();
 private:
     VkInstance m_instance {};
     VkSurfaceKHR m_surface {};
     VkDebugUtilsMessengerEXT m_debug_messenger {};
     RHI::VkPhysicalDevice* m_physical_device {};
+    ::VkDevice m_logical_device {};
+    VkQueue m_graphics_queue {};
+    VkQueue m_present_queue {};
     std::unordered_map<std::string_view, RHI::VkPhysicalDevice> m_physical_devices {};
 };
 

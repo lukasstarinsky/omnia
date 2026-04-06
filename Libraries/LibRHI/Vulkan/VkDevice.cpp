@@ -169,6 +169,7 @@ VkDevice::~VkDevice()
         auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT"));
         func(m_instance, m_debug_messenger, nullptr);
     }
+    release_logical_device();
     if (m_instance != nullptr) {
         vkDestroyInstance(m_instance, nullptr);
     }
@@ -194,7 +195,70 @@ auto VkDevice::select_physical_device(std::string_view name) -> bool
         return false;
     }
     m_physical_device = &it->second;
+    return recreate_logical_device();
+}
+
+auto VkDevice::recreate_logical_device() -> bool
+{
+    if (m_physical_device == nullptr) {
+        return false;
+    }
+
+    release_logical_device();
+
+    std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
+    f32 const queue_priority = 1.0F;
+    auto const& [graphics_index, present_index] = m_physical_device->queue_family_indices();
+
+    queue_create_infos.push_back({ .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .queueFamilyIndex = graphics_index,
+        .queueCount = 1,
+        .pQueuePriorities = &queue_priority });
+
+    queue_create_infos.push_back({ .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .queueFamilyIndex = present_index,
+        .queueCount = 1,
+        .pQueuePriorities = &queue_priority });
+
+    VkPhysicalDeviceFeatures const device_features {};
+
+    std::vector<char const*> const required_extensions {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+    };
+
+    VkDeviceCreateInfo const device_create_info {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .queueCreateInfoCount = static_cast<u32>(queue_create_infos.size()),
+        .pQueueCreateInfos = queue_create_infos.data(),
+        .enabledLayerCount = 0,
+        .ppEnabledLayerNames = nullptr,
+        .enabledExtensionCount = static_cast<u32>(required_extensions.size()),
+        .ppEnabledExtensionNames = required_extensions.data(),
+        .pEnabledFeatures = &device_features
+    };
+
+    if (auto result = vkCreateDevice(m_physical_device->handle(), &device_create_info, nullptr, &m_logical_device); result != VK_SUCCESS) {
+        return false;
+    }
+    vkGetDeviceQueue(m_logical_device, graphics_index, 0, &m_graphics_queue);
+    vkGetDeviceQueue(m_logical_device, present_index, 0, &m_present_queue);
     return true;
+}
+
+void VkDevice::release_logical_device()
+{
+    m_graphics_queue = nullptr;
+    m_present_queue = nullptr;
+    if (m_logical_device != nullptr) {
+        vkDestroyDevice(m_logical_device, nullptr);
+        m_logical_device = nullptr;
+    }
 }
 
 auto VkDevice::create_buffer(Buffer::Configuration const& config) const -> std::expected<std::unique_ptr<Buffer>, std::string>
