@@ -1,3 +1,4 @@
+add_subdirectory(LibAsset)
 add_subdirectory(LibAudio)
 add_subdirectory(LibCore)
 add_subdirectory(LibDebug)
