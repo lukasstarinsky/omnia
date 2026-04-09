@@ -8,4 +8,8 @@
 
 namespace Asset {
 
+class ImportedData;
+class Importer;
+class ImportManager;
+
 }

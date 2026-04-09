@@ -1,5 +1,7 @@
 set(SOURCES
-        main.cpp
+        ImportManager.cpp
+        ModelImporter.cpp
+        TextureImporter.cpp
 )
 
 omnia_lib(LibAsset
