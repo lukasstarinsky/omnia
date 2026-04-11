@@ -37,17 +37,20 @@ public:
 private:
     VkDevice() = default;
 
-    auto recreate_logical_device() -> bool;
-    void release_logical_device();
+    auto create_instance() -> std::expected<void, std::string>;
+    auto create_surface() -> std::expected<void, std::string>;
+    auto create_logical_device() -> std::expected<void, std::string>;
 private:
+    Configuration m_config {};
     VkInstance m_instance {};
     VkSurfaceKHR m_surface {};
     VkDebugUtilsMessengerEXT m_debug_messenger {};
+
     RHI::VkPhysicalDevice* m_physical_device {};
     ::VkDevice m_logical_device {};
     VkQueue m_graphics_queue {};
     VkQueue m_present_queue {};
-    std::unordered_map<std::string_view, RHI::VkPhysicalDevice> m_physical_devices {};
+    std::unordered_map<std::string_view, RHI::VkPhysicalDevice> m_physical_devices;
 };
 
 }

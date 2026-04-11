@@ -42,119 +42,18 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_callback(VkDebugUtilsMessageSever
 auto VkDevice::create(Configuration const& config) -> std::expected<std::unique_ptr<VkDevice>, std::string>
 {
     std::unique_ptr<VkDevice> device(new VkDevice);
+    device->m_config = config;
 
-    VkApplicationInfo const app_info {
-        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-        .pNext = nullptr,
-        .pApplicationName = "Omnia App",
-        .applicationVersion = VK_MAKE_VERSION(0, 1, 0),
-        .pEngineName = "Omnia Engine",
-        .engineVersion = VK_MAKE_VERSION(0, 1, 0),
-        .apiVersion = VK_API_VERSION_1_3,
-    };
-
-    std::vector<char const*> required_extensions {
-        VK_KHR_SURFACE_EXTENSION_NAME,
-        VK_PLATFORM_SURFACE_EXTENSION_NAME,
-    };
-
-    if (config.enable_debug_layer) {
-        required_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    if (auto result = device->create_instance(); !result) {
+        return std::unexpected(result.error());
     }
 
-    VkInstanceCreateInfo instance_info {
-        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .pApplicationInfo = &app_info,
-        .enabledLayerCount = 0,
-        .ppEnabledLayerNames = nullptr,
-        .enabledExtensionCount = static_cast<u32>(required_extensions.size()),
-        .ppEnabledExtensionNames = required_extensions.data(),
-    };
-
-    if (config.enable_debug_layer) {
-        char const* instance_layers[] {
-            "VK_LAYER_KHRONOS_validation"
-        };
-
-        u32 layer_count = 0;
-        vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
-        std::vector<VkLayerProperties> available_layers(layer_count);
-        vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
-
-        bool validation_layer_found = false;
-        for (auto const& layerProperty : available_layers) {
-            if (strcmp(layerProperty.layerName, instance_layers[0]) == 0) {
-                validation_layer_found = true;
-                break;
-            }
-        }
-        if (!validation_layer_found) {
-            return std::unexpected("Vulkan validation layer requested but not available.");
-        }
-
-        instance_info.enabledLayerCount = 1;
-        instance_info.ppEnabledLayerNames = instance_layers;
+    if (auto result = device->create_surface(); !result) {
+        return std::unexpected(result.error());
     }
 
-    if (auto result = vkCreateInstance(&instance_info, nullptr, &device->m_instance); result != VK_SUCCESS) {
-        return std::unexpected(std::format("Failed to create Vulkan instance: {}", string_VkResult(result)));
-    }
-
-    if (config.enable_debug_layer) {
-        VkDebugUtilsMessengerCreateInfoEXT const debugMessengerCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-            .pNext = nullptr,
-            .flags = 0,
-            .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
-            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-            .pfnUserCallback = vk_debug_callback,
-            .pUserData = nullptr
-        };
-
-        auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(device->m_instance, "vkCreateDebugUtilsMessengerEXT"));
-        if (auto result = func(device->m_instance, &debugMessengerCreateInfo, nullptr, &device->m_debug_messenger); result != VK_SUCCESS) {
-            return std::unexpected(std::format("Failed to create Vulkan debug messenger: {}", string_VkResult(result)));
-        }
-    }
-
-#ifdef OA_OS_WINDOWS
-    auto const* window = static_cast<UI::WindowWin32 const*>(config.window);
-
-    VkWin32SurfaceCreateInfoKHR const surface_info {
-        .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
-        .pNext = nullptr,
-        .flags = 0,
-        .hinstance = window->instance(),
-        .hwnd = window->handle()
-    };
-
-    if (auto result = vkCreateWin32SurfaceKHR(device->m_instance, &surface_info, nullptr, &device->m_surface); result != VK_SUCCESS) {
-        return std::unexpected(std::format("Failed to create Vulkan surface: {}", string_VkResult(result)));
-    }
-#endif
-
-    u32 device_count = 0;
-    if (auto result = vkEnumeratePhysicalDevices(device->m_instance, &device_count, nullptr); result != VK_SUCCESS) {
-        return std::unexpected(std::format("Failed to retrieve Vulkan physical devices: {}", string_VkResult(result)));
-    }
-    if (device_count == 0) {
-        return std::unexpected("No Vulkan physical devices found.");
-    }
-    std::vector<::VkPhysicalDevice> physical_devices(device_count);
-    if (auto result = vkEnumeratePhysicalDevices(device->m_instance, &device_count, physical_devices.data()); result != VK_SUCCESS) {
-        return std::unexpected(std::format("Failed to retrieve Vulkan physical devices: {}", string_VkResult(result)));
-    }
-
-    for (auto const& vk_device : physical_devices) {
-        RHI::VkPhysicalDevice physical_device(vk_device, device->m_surface);
-        if (physical_device.is_suitable()) {
-            device->m_physical_devices[physical_device.name()] = std::move(physical_device);
-        }
-    }
-    if (device->m_physical_devices.empty() || !device->select_physical_device(device->m_physical_devices.begin()->first)) {
-        return std::unexpected("No suitable Vulkan physical devices found.");
+    if (auto result = device->create_logical_device(); !result) {
+        return std::unexpected(result.error());
     }
 
     return device;
@@ -169,7 +68,9 @@ VkDevice::~VkDevice()
         auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT"));
         func(m_instance, m_debug_messenger, nullptr);
     }
-    release_logical_device();
+    if (m_logical_device != nullptr) {
+        vkDestroyDevice(m_logical_device, nullptr);
+    }
     if (m_instance != nullptr) {
         vkDestroyInstance(m_instance, nullptr);
     }
@@ -201,25 +102,134 @@ auto VkDevice::physical_devices() const -> std::vector<std::string_view>
 
 auto VkDevice::select_physical_device(std::string_view name) -> bool
 {
-    if (m_physical_device != nullptr && m_physical_device->name() == name) {
-        return true;
-    }
-
-    auto it = m_physical_devices.find(name);
-    if (it == m_physical_devices.end()) {
-        return false;
-    }
-    m_physical_device = &it->second;
-    return recreate_logical_device();
+    (void)name;
+    return true;
 }
 
-auto VkDevice::recreate_logical_device() -> bool
+auto VkDevice::create_instance() -> std::expected<void, std::string>
 {
-    if (m_physical_device == nullptr) {
-        return false;
+    VkApplicationInfo const app_info {
+        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+        .pNext = nullptr,
+        .pApplicationName = "Omnia App",
+        .applicationVersion = VK_MAKE_VERSION(0, 1, 0),
+        .pEngineName = "Omnia Engine",
+        .engineVersion = VK_MAKE_VERSION(0, 1, 0),
+        .apiVersion = VK_API_VERSION_1_3,
+    };
+
+    std::vector<char const*> required_extensions {
+        VK_KHR_SURFACE_EXTENSION_NAME,
+        VK_PLATFORM_SURFACE_EXTENSION_NAME,
+    };
+
+    if (m_config.enable_debug_layer) {
+        required_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
-    release_logical_device();
+    VkInstanceCreateInfo instance_info {
+        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .pApplicationInfo = &app_info,
+        .enabledLayerCount = 0,
+        .ppEnabledLayerNames = nullptr,
+        .enabledExtensionCount = static_cast<u32>(required_extensions.size()),
+        .ppEnabledExtensionNames = required_extensions.data(),
+    };
+
+    if (m_config.enable_debug_layer) {
+        char const* instance_layers[] {
+            "VK_LAYER_KHRONOS_validation"
+        };
+
+        u32 layer_count = 0;
+        vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
+        std::vector<VkLayerProperties> available_layers(layer_count);
+        vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
+
+        bool validation_layer_found = false;
+        for (auto const& layerProperty : available_layers) {
+            if (strcmp(layerProperty.layerName, instance_layers[0]) == 0) {
+                validation_layer_found = true;
+                break;
+            }
+        }
+        if (!validation_layer_found) {
+            return std::unexpected("Vulkan validation layer requested but not available.");
+        }
+
+        instance_info.enabledLayerCount = 1;
+        instance_info.ppEnabledLayerNames = instance_layers;
+    }
+
+    if (auto result = vkCreateInstance(&instance_info, nullptr, &m_instance); result != VK_SUCCESS) {
+        return std::unexpected(std::format("Failed to create Vulkan instance: {}", string_VkResult(result)));
+    }
+
+    if (m_config.enable_debug_layer) {
+        VkDebugUtilsMessengerCreateInfoEXT const debugMessengerCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+            .pNext = nullptr,
+            .flags = 0,
+            .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+            .pfnUserCallback = vk_debug_callback,
+            .pUserData = nullptr
+        };
+
+        auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_instance, "vkCreateDebugUtilsMessengerEXT"));
+        if (auto result = func(m_instance, &debugMessengerCreateInfo, nullptr, &m_debug_messenger); result != VK_SUCCESS) {
+            return std::unexpected(std::format("Failed to create Vulkan debug messenger: {}", string_VkResult(result)));
+        }
+    }
+    return {};
+}
+
+auto VkDevice::create_surface() -> std::expected<void, std::string>
+{
+#ifdef OA_OS_WINDOWS
+    auto const* window = static_cast<UI::WindowWin32 const*>(m_config.window);
+
+    VkWin32SurfaceCreateInfoKHR const surface_info {
+        .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+        .pNext = nullptr,
+        .flags = 0,
+        .hinstance = window->instance(),
+        .hwnd = window->handle()
+    };
+
+    if (auto result = vkCreateWin32SurfaceKHR(m_instance, &surface_info, nullptr, &m_surface); result != VK_SUCCESS) {
+        return std::unexpected(std::format("Failed to create Vulkan surface: {}", string_VkResult(result)));
+    }
+#endif
+    return {};
+}
+
+auto VkDevice::create_logical_device() -> std::expected<void, std::string>
+{
+    u32 device_count = 0;
+    if (auto result = vkEnumeratePhysicalDevices(m_instance, &device_count, nullptr); result != VK_SUCCESS) {
+        return std::unexpected(std::format("Failed to retrieve Vulkan physical devices: {}", string_VkResult(result)));
+    }
+    if (device_count == 0) {
+        return std::unexpected("No Vulkan physical devices found.");
+    }
+    std::vector<::VkPhysicalDevice> physical_devices(device_count);
+    if (auto result = vkEnumeratePhysicalDevices(m_instance, &device_count, physical_devices.data()); result != VK_SUCCESS) {
+        return std::unexpected(std::format("Failed to retrieve Vulkan physical devices: {}", string_VkResult(result)));
+    }
+
+    for (auto const& vk_device : physical_devices) {
+        RHI::VkPhysicalDevice physical_device(vk_device, m_surface);
+        if (physical_device.is_suitable()) {
+            m_physical_devices[physical_device.name()] = std::move(physical_device);
+        }
+    }
+    if (m_physical_devices.empty()) {
+        return std::unexpected("No suitable Vulkan physical devices found.");
+    }
+    m_physical_device = &m_physical_devices.begin()->second;
 
     std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
     f32 const queue_priority = 1.0F;
@@ -259,21 +269,11 @@ auto VkDevice::recreate_logical_device() -> bool
     };
 
     if (auto result = vkCreateDevice(m_physical_device->handle(), &device_create_info, nullptr, &m_logical_device); result != VK_SUCCESS) {
-        return false;
+        return std::unexpected(std::format("Failed to create Vulkan logical device: {}", string_VkResult(result)));
     }
     vkGetDeviceQueue(m_logical_device, graphics_index, 0, &m_graphics_queue);
     vkGetDeviceQueue(m_logical_device, present_index, 0, &m_present_queue);
-    return true;
-}
-
-void VkDevice::release_logical_device()
-{
-    m_graphics_queue = nullptr;
-    m_present_queue = nullptr;
-    if (m_logical_device != nullptr) {
-        vkDestroyDevice(m_logical_device, nullptr);
-        m_logical_device = nullptr;
-    }
+    return {};
 }
 
 auto VkDevice::create_buffer(Buffer::Configuration const& config) const -> std::expected<std::unique_ptr<Buffer>, std::string>

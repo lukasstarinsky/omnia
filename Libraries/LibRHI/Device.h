@@ -37,6 +37,7 @@ public:
         API api;
         bool enable_debug_layer;
         UI::Window const* window;
+        u32 frames_in_flight = 2;
     };
 
     static auto RHI_API create(Configuration const& config) -> std::expected<std::unique_ptr<Device>, std::string>;
