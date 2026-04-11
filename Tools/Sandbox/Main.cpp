@@ -34,7 +34,8 @@ public:
         RHI::Device::Configuration const device_config {
             .api = RHI::Device::API::Vulkan,
             .enable_debug_layer = true,
-            .window = sandbox->m_window.get()
+            .window = sandbox->m_window.get(),
+            .frames_in_flight = 2
         };
         auto graphics_device = RHI::Device::create(device_config);
         if (!graphics_device.has_value()) {
