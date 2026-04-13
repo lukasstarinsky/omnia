@@ -8,7 +8,7 @@
 
 namespace Asset {
 
-auto ModelImporter::import(std::filesystem::path const& path) -> std::expected<ImportedData, std::string>
+auto ModelImporter::import(std::filesystem::path const& path) -> std::expected<std::any, std::string>
 {
     (void)path;
     return {};

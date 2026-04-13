@@ -15,7 +15,7 @@ struct ModelData : public ImportedData {
 
 class ModelImporter final : public Importer {
 public:
-    auto import(std::filesystem::path const& path) -> std::expected<ImportedData, std::string> override;
+    auto import(std::filesystem::path const& path) -> std::expected<std::any, std::string> override;
     auto supported_extensions() const -> std::vector<std::string> override;
 };
 

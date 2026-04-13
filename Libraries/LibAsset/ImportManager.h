@@ -9,17 +9,37 @@
 #include <memory>
 #include <unordered_map>
 
+#include <LibAsset/Export.h>
 #include <LibAsset/Importer.h>
-#include <LibAsset/ModelImporter.h>
 
 namespace Asset {
 
-class ImportManager {
+class ASSET_API ImportManager final {
 public:
     ImportManager() = default;
 
     void register_importer(std::shared_ptr<Importer> importer);
-    auto import(std::filesystem::path const& path) -> std::expected<ImportedData, std::string>;
+
+    template <typename T> requires std::derived_from<T, ImportedData>
+    auto import(std::filesystem::path const& path) -> std::expected<T, std::string>
+    {
+        auto extension = path.extension().string();
+        auto it = m_importers.find(extension);
+        if (it == m_importers.end()) {
+            return std::unexpected(std::format("No importer registered for extension '{}'", extension));
+        }
+
+        auto import_result = it->second->import(path);
+        if (!import_result.has_value()) {
+            return std::unexpected(import_result.error());
+        }
+
+        if (auto* casted_data = std::any_cast<T>(&import_result.value())) {
+            return *casted_data;
+        } else {
+            return std::unexpected(std::format("Importer for extension '{}' returned data of incorrect type", extension));
+        }
+    }
 private:
     std::unordered_map<std::string, std::shared_ptr<Importer>> m_importers;
 };

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <any>
 #include <expected>
 #include <filesystem>
 
@@ -20,7 +21,7 @@ class Importer {
 public:
     virtual ~Importer() = default;
 
-    virtual auto import(std::filesystem::path const& path) -> std::expected<ImportedData, std::string> = 0;
+    virtual auto import(std::filesystem::path const& path) -> std::expected<std::any, std::string> = 0;
     virtual auto supported_extensions() const -> std::vector<std::string> = 0;
 };
 
