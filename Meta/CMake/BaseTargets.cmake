@@ -41,3 +41,11 @@ function(omnia_app target)
         add_dependencies(${target} ${OMNIA_LIBS})
     endif ()
 endfunction()
+
+add_custom_target(
+        CopyResources
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/Resources
+        ${CMAKE_BINARY_DIR}/Resources
+        COMMENT "Copying Resources directory to output folder"
+)

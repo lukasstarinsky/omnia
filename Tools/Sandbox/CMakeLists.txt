@@ -6,3 +6,4 @@ omnia_app(Sandbox
         SOURCES ${SOURCES}
         LIBS LibUI LibRHI
 )
+add_dependencies(Sandbox CopyResources)
