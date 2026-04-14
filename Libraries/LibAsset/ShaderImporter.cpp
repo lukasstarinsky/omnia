@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <Common/File.h>
 #include <LibAsset/ShaderCompiler.h>
 #include <LibAsset/ShaderImporter.h>
-#include <LibCore/Utilities.h>
 
 namespace Asset {
 
@@ -33,15 +33,13 @@ auto ShaderImporter::import(std::filesystem::path const& path) -> std::expected<
         return std::unexpected(std::format("Unsupported shader stage '{}'", shader_stage_string));
     }
 
-    using namespace Core::Utilities;
-
     ShaderData shader_data;
     shader_data.name = file_name;
     shader_data.source_path = path;
     shader_data.stage = shader_stage;
     shader_data.variants.reserve(3);
 
-    auto file_content = read_file_to_string(path);
+    auto file_content = File::read_all(path);
     if (!file_content) {
         return std::unexpected(file_content.error());
     }
