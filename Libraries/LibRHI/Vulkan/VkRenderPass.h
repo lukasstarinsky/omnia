@@ -40,8 +40,8 @@ private:
     std::vector<VkClearValue> m_clear_values;
 };
 
-auto to_vk(RenderPass::LoadOp load_op) -> VkAttachmentLoadOp;
-auto to_vk(RenderPass::StoreOp store_op) -> VkAttachmentStoreOp;
+auto to_vk(LoadOp load_op) -> VkAttachmentLoadOp;
+auto to_vk(StoreOp store_op) -> VkAttachmentStoreOp;
 auto to_vk(RenderPass const* render_pass) -> RHI::VkRenderPass const*;
 
 }

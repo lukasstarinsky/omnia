@@ -142,27 +142,25 @@ auto VkRenderPass::create_render_pass() -> std::expected<void, std::string>
     return {};
 }
 
-auto to_vk(RenderPass::LoadOp load_op) -> VkAttachmentLoadOp
+auto to_vk(LoadOp load_op) -> VkAttachmentLoadOp
 {
     switch (load_op) {
-        using enum RenderPass::LoadOp;
-    case Load:
+    case LoadOp::Load:
         return VK_ATTACHMENT_LOAD_OP_LOAD;
-    case Clear:
+    case LoadOp::Clear:
         return VK_ATTACHMENT_LOAD_OP_CLEAR;
-    case DontCare:
+    case LoadOp::DontCare:
         return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     }
     return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 }
 
-auto to_vk(RenderPass::StoreOp store_op) -> VkAttachmentStoreOp
+auto to_vk(StoreOp store_op) -> VkAttachmentStoreOp
 {
     switch (store_op) {
-        using enum RenderPass::StoreOp;
-    case Store:
+    case StoreOp::Store:
         return VK_ATTACHMENT_STORE_OP_STORE;
-    case DontCare:
+    case StoreOp::DontCare:
         return VK_ATTACHMENT_STORE_OP_DONT_CARE;
     }
     return VK_ATTACHMENT_STORE_OP_DONT_CARE;

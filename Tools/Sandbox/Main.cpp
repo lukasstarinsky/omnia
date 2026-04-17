@@ -62,8 +62,8 @@ public:
             .color_attachments = {
                 {
                     .format = sandbox->m_swapchain->format(),
-                    .load_op = RHI::RenderPass::LoadOp::Clear,
-                    .store_op = RHI::RenderPass::StoreOp::Store,
+                    .load_op = RHI::LoadOp::Clear,
+                    .store_op = RHI::StoreOp::Store,
                     .clear_color = { 1.0F, 0.0F, 0.0F, 1.0F }
                 }
             }

@@ -17,22 +17,22 @@
 
 namespace RHI {
 
+enum class LoadOp : u8 {
+    Load = 0,
+    Clear,
+    DontCare
+};
+
+enum class StoreOp : u8 {
+    Store = 0,
+    DontCare
+};
+
 class RenderPass {
     OA_MAKE_NONCOPYABLE(RenderPass);
     OA_MAKE_DEFAULT_MOVABLE(RenderPass);
 
 public:
-    enum class LoadOp : u8 {
-        Load = 0,
-        Clear,
-        DontCare
-    };
-
-    enum class StoreOp : u8 {
-        Store = 0,
-        DontCare
-    };
-
     struct Configuration {
         struct Attachment {
             Texture::Format format {};
