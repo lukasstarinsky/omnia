@@ -42,11 +42,22 @@ auto DX12Swapchain::textures() const -> std::vector<std::unique_ptr<Texture>> co
 #pragma GCC diagnostic pop
 }
 
+auto DX12Swapchain::is_dirty() const -> bool
+{
+    return false;
+}
+
+auto DX12Swapchain::recreate(const RHI::Swapchain::Configuration& config) -> std::expected<void, std::string>
+{
+    (void)config;
+    return {};
+}
+
 void DX12Swapchain::wait_idle() const
 {
 }
 
-auto DX12Swapchain::begin_frame() -> Frame
+auto DX12Swapchain::begin_frame() -> std::optional<Frame>
 {
     return {};
 }

@@ -33,15 +33,17 @@ public:
     auto format() const -> Texture::Format override;
     auto textures() const -> std::vector<std::unique_ptr<Texture>> const& override;
 
+    auto is_dirty() const -> bool override;
+    auto recreate(Configuration const& config) -> std::expected<void, std::string> override;
     void wait_idle() const override;
-    auto begin_frame() -> Frame override;
+    auto begin_frame() -> std::optional<Frame> override;
     void end_frame(Frame const& frame) override;
 private:
     VkSwapchain() = default;
 
-    void select_surface_format();
+    auto select_surface_format() const -> VkSurfaceFormatKHR;
     auto select_present_mode() const -> VkPresentModeKHR;
-    void select_swap_extent();
+    auto select_swap_extent() const -> VkExtent2D;
     auto select_image_count() const -> u32;
 
     auto create_swapchain() -> std::expected<void, std::string>;
@@ -50,6 +52,7 @@ private:
     auto create_sync_objects() -> std::expected<void, std::string>;
 private:
     Configuration m_config;
+    bool m_is_dirty = false;
     VkSurfaceFormatKHR m_surface_format {};
     VkExtent2D m_extent {};
     VkSwapchainKHR m_handle {};

@@ -43,8 +43,6 @@ VkPhysicalDevice::VkPhysicalDevice(::VkPhysicalDevice handle, VkSurfaceKHR surfa
     vkGetPhysicalDeviceSurfacePresentModesKHR(handle, m_surface, &present_mode_count, nullptr);
     m_present_modes.resize(present_mode_count);
     vkGetPhysicalDeviceSurfacePresentModesKHR(handle, m_surface, &present_mode_count, m_present_modes.data());
-
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, m_surface, &m_surface_capabilities);
 }
 
 auto VkPhysicalDevice::is_suitable() const -> bool
@@ -108,9 +106,11 @@ auto VkPhysicalDevice::present_modes() const -> std::vector<VkPresentModeKHR> co
     return m_present_modes;
 }
 
-auto VkPhysicalDevice::surface_capabilities() const -> VkSurfaceCapabilitiesKHR const&
+auto VkPhysicalDevice::surface_capabilities() const -> VkSurfaceCapabilitiesKHR
 {
-    return m_surface_capabilities;
+    VkSurfaceCapabilitiesKHR surface_capabilities {};
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, m_surface, &surface_capabilities);
+    return surface_capabilities;
 }
 
 }

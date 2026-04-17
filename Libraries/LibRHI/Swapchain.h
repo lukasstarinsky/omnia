@@ -8,6 +8,7 @@
 
 #include <expected>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -42,8 +43,10 @@ public:
     virtual auto format() const -> Texture::Format = 0;
     virtual auto textures() const -> std::vector<std::unique_ptr<Texture>> const& = 0;
 
+    virtual auto is_dirty() const -> bool = 0;
+    virtual auto recreate(Configuration const& config) -> std::expected<void, std::string> = 0;
     virtual void wait_idle() const = 0;
-    virtual auto begin_frame() -> Frame = 0;
+    virtual auto begin_frame() -> std::optional<Frame> = 0;
     virtual void end_frame(Frame const& frame) = 0;
 protected:
     Swapchain() = default;

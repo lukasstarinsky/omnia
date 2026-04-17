@@ -8,7 +8,6 @@
 
 #include <LibRHI/Vulkan/VkCommandBuffer.h>
 #include <LibRHI/Vulkan/VkPipeline.h>
-#include <LibRHI/Vulkan/VkRenderPass.h>
 
 namespace RHI {
 

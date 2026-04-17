@@ -30,8 +30,10 @@ public:
     auto format() const -> Texture::Format override;
     auto textures() const -> std::vector<std::unique_ptr<Texture>> const& override;
 
+    auto is_dirty() const -> bool override;
+    auto recreate(Configuration const& config) -> std::expected<void, std::string> override;
     void wait_idle() const override;
-    auto begin_frame() -> Frame override;
+    auto begin_frame() -> std::optional<Frame> override;
     void end_frame(Frame const& frame) override;
 private:
     DX12Swapchain() = default;

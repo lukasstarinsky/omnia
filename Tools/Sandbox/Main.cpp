@@ -83,13 +83,13 @@ public:
 
         {
             Shader::Configuration shader_config;
-            TRY_ASSIGN(shader_config, sandbox->m_import_manager.import<Shader::Configuration>("Resources/Shaders/BaseObject.fs.glsl"));
+            TRY_ASSIGN(shader_config, sandbox->m_import_manager.import <Shader::Configuration>("Resources/Shaders/BaseObject.fs.glsl"));
             TRY_ASSIGN(sandbox->m_fragment_shader, sandbox->m_graphics_device->create_shader(shader_config));
         }
 
         {
             Shader::Configuration shader_config;
-            TRY_ASSIGN(shader_config, sandbox->m_import_manager.import<Shader::Configuration>("Resources/Shaders/BaseObject.vs.glsl"));
+            TRY_ASSIGN(shader_config, sandbox->m_import_manager.import <Shader::Configuration>("Resources/Shaders/BaseObject.vs.glsl"));
             TRY_ASSIGN(sandbox->m_vertex_shader, sandbox->m_graphics_device->create_shader(shader_config));
         }
 
@@ -109,23 +109,48 @@ public:
         };
         TRY_ASSIGN(sandbox->m_pipeline, sandbox->m_graphics_device->create_pipeline(main_pipeline_config));
 
-        UI::EventDispatcher::register_listener<UI::KeyEvent>([](UI::KeyEvent const&) -> bool {
-            std::println("Key event received!");
-            return false;
+        UI::EventDispatcher::register_listener<UI::WindowCloseEvent>([](UI::WindowCloseEvent const&) {
+            std::println("Window close event received, exiting...");
+            return true;
         });
-        UI::EventDispatcher::register_listener<UI::MouseButtonEvent>([](UI::MouseButtonEvent const&) -> bool {
-            std::println("Mouse button event received!");
-            return false;
-        });
-        UI::EventDispatcher::register_listener<UI::WindowCloseEvent>([](UI::WindowCloseEvent const&) -> bool {
-            std::println("Window close event received!");
-            return false;
-        });
-        UI::EventDispatcher::register_listener<UI::WindowResizeEvent>([](UI::WindowResizeEvent const& event) -> bool {
-            std::println("Window resize event received! New size: {}x{}.", event.width, event.height);
-            return false;
-        });
+        UI::EventDispatcher::register_listener<UI::WindowResizeEvent>(std::bind_front(&Sandbox::on_resize, sandbox.get()));
         return sandbox;
+    }
+
+    auto on_resize([[maybe_unused]] UI::WindowResizeEvent const& event) -> bool
+    {
+        m_was_window_resized = true;
+        return true;
+    }
+
+    auto recreate_swapchain() -> bool
+    {
+        m_swapchain->wait_idle();
+        m_swapchain_render_targets.clear();
+
+        RHI::Swapchain::Configuration const new_swapchain_config {
+            .width = static_cast<u32>(m_window->width()),
+            .height = static_cast<u32>(m_window->height()),
+            .frames_in_flight = 2
+        };
+
+        auto result = m_swapchain->recreate(new_swapchain_config);
+        if (!result.has_value()) {
+            std::println(stderr, "{}", result.error());
+            return false;
+        }
+
+        auto const& swapchain_textures = m_swapchain->textures();
+        for (auto const& swapchain_texture : swapchain_textures) {
+            auto render_target = m_graphics_device->create_render_target(m_main_render_pass.get(), swapchain_texture.get());
+            if (!render_target.has_value()) {
+                std::println(stderr, "{}", render_target.error());
+                return false;
+            }
+            m_swapchain_render_targets.push_back(std::move(render_target.value()));
+        }
+        std::println("Recreating swapchain...");
+        return true;
     }
 
     void run()
@@ -133,25 +158,33 @@ public:
         while (m_window->is_running()) {
             m_window->poll_events();
 
-            if (m_window->input().is_key_down(UI::Input::Key::F10)) {
-                std::println("Input polling: F10 is down!");
+            if (m_window->is_minimized()) {
+                continue;
             }
 
-            if (m_window->input().is_mouse_button_down(UI::Input::MouseButton::Left)) {
-                std::println("Input polling: Left mouse button is down!");
+            if (m_was_window_resized || m_swapchain->is_dirty()) {
+                m_was_window_resized = false;
+                if (!recreate_swapchain()) {
+                    break;
+                }
+                continue;
             }
 
             auto frame = m_swapchain->begin_frame();
-            {
-                frame.cmd->begin_render_pass(m_main_render_pass.get(), m_swapchain_render_targets[frame.image_index].get());
-                {
-                    frame.cmd->bind_pipeline(m_pipeline.get());
-                    frame.cmd->set_viewport(0, 0, m_swapchain->width(), m_swapchain->height());
-                    frame.cmd->set_scissor(0, 0, m_swapchain->width(), m_swapchain->height());
-                }
-                frame.cmd->end_render_pass();
+            if (!frame.has_value()) {
+                continue;
             }
-            m_swapchain->end_frame(frame);
+            auto [cmd, image_index] = frame.value();
+            {
+                cmd->begin_render_pass(m_main_render_pass.get(), m_swapchain_render_targets[image_index].get());
+                {
+                    cmd->bind_pipeline(m_pipeline.get());
+                    cmd->set_viewport(0, 0, m_swapchain->width(), m_swapchain->height());
+                    cmd->set_scissor(0, 0, m_swapchain->width(), m_swapchain->height());
+                }
+                cmd->end_render_pass();
+            }
+            m_swapchain->end_frame(frame.value());
         }
     }
 
@@ -171,6 +204,7 @@ private:
     Asset::ImportManager m_import_manager;
     std::unique_ptr<RHI::Shader> m_vertex_shader;
     std::unique_ptr<RHI::Shader> m_fragment_shader;
+    bool m_was_window_resized = false;
 };
 
 auto main() -> i32

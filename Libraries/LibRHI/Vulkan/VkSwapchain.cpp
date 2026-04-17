@@ -5,7 +5,9 @@
  */
 
 #include <algorithm>
+#include <cassert>
 #include <format>
+#include <print>
 
 #include <LibRHI/Vulkan/VkRenderTarget.h>
 #include <LibRHI/Vulkan/VkSwapchain.h>
@@ -76,6 +78,28 @@ auto VkSwapchain::textures() const -> std::vector<std::unique_ptr<Texture>> cons
     return m_textures;
 }
 
+auto VkSwapchain::is_dirty() const -> bool
+{
+    return m_is_dirty;
+}
+
+auto VkSwapchain::recreate(const RHI::Swapchain::Configuration& config) -> std::expected<void, std::string>
+{
+    assert(m_handle != VK_NULL_HANDLE);
+
+    m_current_frame = 0;
+    m_is_dirty = false;
+    m_config = config;
+    m_textures.clear();
+    m_images.clear();
+
+    vkDestroySwapchainKHR(m_device->handle(), m_handle, nullptr);
+    return create_swapchain()
+        .and_then([&]() {
+            return create_images();
+        });
+}
+
 void VkSwapchain::wait_idle() const
 {
     for (auto* fence : m_in_flight_fences) {
@@ -83,18 +107,20 @@ void VkSwapchain::wait_idle() const
     }
 }
 
-auto VkSwapchain::begin_frame() -> Frame
+auto VkSwapchain::begin_frame() -> std::optional<Frame>
 {
     vkWaitForFences(m_device->handle(), 1, &m_in_flight_fences[m_current_frame], VK_TRUE, std::numeric_limits<u64>::max());
-    vkResetFences(m_device->handle(), 1, &m_in_flight_fences[m_current_frame]);
-
     u32 image_index = 0;
-    vkAcquireNextImageKHR(m_device->handle(), m_handle, std::numeric_limits<u64>::max(), m_image_available_semaphores[m_current_frame], VK_NULL_HANDLE, &image_index);
+    if (auto result = vkAcquireNextImageKHR(m_device->handle(), m_handle, std::numeric_limits<u64>::max(), m_image_available_semaphores[m_current_frame], VK_NULL_HANDLE, &image_index); result == VK_ERROR_OUT_OF_DATE_KHR) {
+        m_is_dirty = true;
+        return std::nullopt;
+    }
+    vkResetFences(m_device->handle(), 1, &m_in_flight_fences[m_current_frame]);
 
     m_command_buffers[m_current_frame].reset();
     m_command_buffers[m_current_frame].begin();
 
-    return {
+    return Frame {
         .cmd = &m_command_buffers[m_current_frame],
         .image_index = image_index
     };
@@ -134,13 +160,13 @@ void VkSwapchain::end_frame(Frame const& frame)
     m_current_frame = (m_current_frame + 1) % m_config.frames_in_flight;
 }
 
-void VkSwapchain::select_surface_format()
+auto VkSwapchain::select_surface_format() const -> VkSurfaceFormatKHR
 {
     auto const& surface_formats = m_device->selected_physical_device()->surface_formats();
     auto surface_format_if = std::ranges::find_if(surface_formats.begin(), surface_formats.end(), [](VkSurfaceFormatKHR const& surface_format) {
         return surface_format.format == VK_FORMAT_B8G8R8A8_SRGB && surface_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
     });
-    m_surface_format = surface_format_if != surface_formats.end() ? *surface_format_if : surface_formats[0];
+    return surface_format_if != surface_formats.end() ? *surface_format_if : surface_formats[0];
 }
 
 auto VkSwapchain::select_present_mode() const -> VkPresentModeKHR
@@ -150,17 +176,17 @@ auto VkSwapchain::select_present_mode() const -> VkPresentModeKHR
     return present_mode_if != present_modes.end() ? *present_mode_if : VK_PRESENT_MODE_FIFO_KHR;
 }
 
-void VkSwapchain::select_swap_extent()
+auto VkSwapchain::select_swap_extent() const -> VkExtent2D
 {
     auto const& surface_capabilities = m_device->selected_physical_device()->surface_capabilities();
 
     if (surface_capabilities.currentExtent.width != std::numeric_limits<u32>::max()) {
-        m_extent = surface_capabilities.currentExtent;
+        return surface_capabilities.currentExtent;
     }
 
     auto width = std::clamp<u32>(m_config.width, surface_capabilities.minImageExtent.width, surface_capabilities.maxImageExtent.width);
     auto height = std::clamp<u32>(m_config.height, surface_capabilities.minImageExtent.height, surface_capabilities.maxImageExtent.height);
-    m_extent = {
+    return {
         .width = width,
         .height = height
     };
@@ -178,8 +204,8 @@ auto VkSwapchain::select_image_count() const -> u32
 
 auto VkSwapchain::create_swapchain() -> std::expected<void, std::string>
 {
-    select_surface_format();
-    select_swap_extent();
+    m_surface_format = select_surface_format();
+    m_extent = select_swap_extent();
     auto image_count = select_image_count();
     auto present_mode = select_present_mode();
 
@@ -263,7 +289,7 @@ auto VkSwapchain::create_images() -> std::expected<void, std::string>
 auto VkSwapchain::create_command_buffers() -> std::expected<void, std::string>
 {
     auto const* physical_device = m_device->selected_physical_device();
-    auto const queue_family_indices = physical_device->queue_family_indices();
+    auto const& queue_family_indices = physical_device->queue_family_indices();
 
     VkCommandPoolCreateInfo const graphics_pool_create_info {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
