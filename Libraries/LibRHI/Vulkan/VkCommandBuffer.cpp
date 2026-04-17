@@ -7,6 +7,7 @@
 #include <format>
 
 #include <LibRHI/Vulkan/VkCommandBuffer.h>
+#include <LibRHI/Vulkan/VkPipeline.h>
 #include <LibRHI/Vulkan/VkRenderPass.h>
 
 namespace RHI {
@@ -65,6 +66,14 @@ void VkCommandBuffer::begin_render_pass(RenderPass const* render_pass, RenderTar
 void VkCommandBuffer::end_render_pass() const
 {
     vkCmdEndRenderPass(m_handle);
+}
+
+void VkCommandBuffer::bind_pipeline(Pipeline const* pipeline) const
+{
+    vkCmdBindPipeline(m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, to_vk(pipeline)->handle());
+
+    // TODO: IMPORTANT: Test draw call
+    vkCmdDraw(m_handle, 3, 1, 0, 0);
 }
 
 auto to_vk(CommandBuffer const* command_buffer) -> VkCommandBuffer const*

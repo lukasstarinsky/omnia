@@ -57,6 +57,16 @@ VkSwapchain::~VkSwapchain()
     }
 }
 
+auto VkSwapchain::width() const -> u32
+{
+    return m_extent.width;
+}
+
+auto VkSwapchain::height() const -> u32
+{
+    return m_extent.height;
+}
+
 auto VkSwapchain::format() const -> Texture::Format
 {
     return to_rhi(m_surface_format.format);

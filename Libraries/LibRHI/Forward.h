@@ -11,6 +11,7 @@ namespace RHI {
 class Buffer;
 class CommandBuffer;
 class Device;
+class Pipeline;
 class RenderPass;
 class RenderTarget;
 class Shader;

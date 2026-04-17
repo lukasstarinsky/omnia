@@ -51,4 +51,14 @@ auto VkShader::config() const -> Configuration const&
     return m_config;
 }
 
+auto VkShader::handle() const -> VkShaderModule
+{
+    return m_handle;
+}
+
+auto to_vk(Shader const* shader) -> RHI::VkShader const*
+{
+    return static_cast<RHI::VkShader const*>(shader);
+}
+
 }

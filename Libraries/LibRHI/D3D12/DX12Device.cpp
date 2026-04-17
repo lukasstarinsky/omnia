@@ -38,6 +38,12 @@ auto DX12Device::create_buffer(Buffer::Configuration const& config) const -> std
     return DX12Buffer::create(config);
 }
 
+auto DX12Device::create_pipeline(Pipeline::Configuration const& config) const -> std::expected<std::unique_ptr<Pipeline>, std::string>
+{
+    (void)config;
+    return {};
+}
+
 auto DX12Device::create_render_pass(RenderPass::Configuration const& config) const -> std::expected<std::unique_ptr<RenderPass>, std::string>
 {
     (void)config;

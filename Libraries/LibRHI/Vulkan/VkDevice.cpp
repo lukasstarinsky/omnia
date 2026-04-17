@@ -11,6 +11,7 @@
 #include <LibRHI/Vulkan/VkBuffer.h>
 #include <LibRHI/Vulkan/VkCommon.h>
 #include <LibRHI/Vulkan/VkDevice.h>
+#include <LibRHI/Vulkan/VkPipeline.h>
 #include <LibRHI/Vulkan/VkRenderPass.h>
 #include <LibRHI/Vulkan/VkRenderTarget.h>
 #include <LibRHI/Vulkan/VkShader.h>
@@ -258,7 +259,8 @@ auto VkDevice::create_logical_device() -> std::expected<void, std::string>
         .queueCount = 1,
         .pQueuePriorities = &queue_priority });
 
-    VkPhysicalDeviceFeatures const device_features {};
+    VkPhysicalDeviceFeatures device_features {};
+    device_features.fillModeNonSolid = VK_TRUE;
 
     std::vector<char const*> const required_extensions {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
@@ -283,6 +285,11 @@ auto VkDevice::create_logical_device() -> std::expected<void, std::string>
     vkGetDeviceQueue(m_logical_device, graphics_index, 0, &m_graphics_queue);
     vkGetDeviceQueue(m_logical_device, present_index, 0, &m_present_queue);
     return {};
+}
+
+auto VkDevice::create_pipeline(Pipeline::Configuration const& config) const -> std::expected<std::unique_ptr<Pipeline>, std::string>
+{
+    return VkPipeline::create(config, this);
 }
 
 auto VkDevice::create_render_pass(RenderPass::Configuration const& config) const -> std::expected<std::unique_ptr<RenderPass>, std::string>

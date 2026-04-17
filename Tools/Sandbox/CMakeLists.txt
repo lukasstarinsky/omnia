@@ -4,6 +4,6 @@ set(SOURCES
 
 omnia_app(Sandbox
         SOURCES ${SOURCES}
-        LIBS LibUI LibRHI
+        LIBS LibUI LibRHI LibAsset
 )
 add_dependencies(Sandbox CopyResources)

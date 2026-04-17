@@ -29,12 +29,15 @@ public:
     };
 
     struct Configuration {
-        i32 width {};
-        i32 height {};
+        u32 width {};
+        u32 height {};
         i32 frames_in_flight = 2;
     };
 
     virtual ~Swapchain() = default;
+
+    virtual auto width() const -> u32 = 0;
+    virtual auto height() const -> u32 = 0;
 
     virtual auto format() const -> Texture::Format = 0;
     virtual auto textures() const -> std::vector<std::unique_ptr<Texture>> const& = 0;

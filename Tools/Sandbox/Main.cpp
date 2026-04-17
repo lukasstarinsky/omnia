@@ -5,6 +5,8 @@
  */
 
 #include <Common/Types.h>
+#include <LibAsset/ImportManager.h>
+#include <LibAsset/ShaderImporter.h>
 #include <LibRHI/Device.h>
 #include <LibUI/Platform/Event.h>
 #include <LibUI/Platform/Window.h>
@@ -12,33 +14,37 @@
 #include <algorithm>
 #include <print>
 
+#define TRY_ASSIGN(lhs, expr)                                  \
+    {                                                          \
+        auto result = (expr);                                  \
+        if (!result.has_value()) {                             \
+            return std::unexpected(std::move(result.error())); \
+        }                                                      \
+        lhs = std::move(result.value());                       \
+    }                                                          \
+    (void)0
+
 class Sandbox final {
 public:
     static auto create() -> std::expected<std::unique_ptr<Sandbox>, std::string>
     {
         std::unique_ptr<Sandbox> sandbox(new Sandbox);
 
+        sandbox->m_import_manager.register_importer(std::make_shared<Asset::ShaderImporter>());
+
         UI::Window::Configuration const window_config {
             .title = "Omnia Sandbox",
             .width = 800,
             .height = 600
         };
-        auto window = UI::Window::create(window_config);
-        if (!window.has_value()) {
-            return std::unexpected(std::move(window.error()));
-        }
-        sandbox->m_window = std::move(window.value());
+        TRY_ASSIGN(sandbox->m_window, UI::Window::create(window_config));
 
         RHI::Device::Configuration const device_config {
             .api = RHI::Device::API::Vulkan,
             .enable_debug_layer = true,
             .window = sandbox->m_window.get(),
         };
-        auto graphics_device = RHI::Device::create(device_config);
-        if (!graphics_device.has_value()) {
-            return std::unexpected(std::move(graphics_device.error()));
-        }
-        sandbox->m_graphics_device = std::move(graphics_device.value());
+        TRY_ASSIGN(sandbox->m_graphics_device, RHI::Device::create(device_config));
 
         for (auto const& device_name : sandbox->m_graphics_device->physical_devices()) {
             if (sandbox->m_graphics_device->select_physical_device(device_name)) {
@@ -48,15 +54,11 @@ public:
         }
 
         RHI::Swapchain::Configuration const swapchain_config {
-            .width = window_config.width,
-            .height = window_config.height,
+            .width = static_cast<u32>(window_config.width),
+            .height = static_cast<u32>(window_config.height),
             .frames_in_flight = 2
         };
-        auto swapchain = sandbox->m_graphics_device->create_swapchain(swapchain_config);
-        if (!swapchain.has_value()) {
-            return std::unexpected(std::move(swapchain.error()));
-        }
-        sandbox->m_swapchain = std::move(swapchain.value());
+        TRY_ASSIGN(sandbox->m_swapchain, sandbox->m_graphics_device->create_swapchain(swapchain_config));
 
         RHI::RenderPass::Configuration const main_render_pass_config {
             .color_attachments = {
@@ -68,11 +70,7 @@ public:
                 }
             }
         };
-        auto main_render_pass = sandbox->m_graphics_device->create_render_pass(main_render_pass_config);
-        if (!main_render_pass.has_value()) {
-            return std::unexpected(std::move(main_render_pass.error()));
-        }
-        sandbox->m_main_render_pass = std::move(main_render_pass.value());
+        TRY_ASSIGN(sandbox->m_main_render_pass, sandbox->m_graphics_device->create_render_pass(main_render_pass_config));
 
         auto const& swapchain_textures = sandbox->m_swapchain->textures();
         for (auto const& swapchain_texture : swapchain_textures) {
@@ -82,6 +80,36 @@ public:
             }
             sandbox->m_swapchain_render_targets.push_back(std::move(render_target.value()));
         }
+
+        {
+            Shader::Configuration shader_config;
+            TRY_ASSIGN(shader_config, sandbox->m_import_manager.import<Shader::Configuration>("Resources/Shaders/BaseObject.fs.glsl"));
+            TRY_ASSIGN(sandbox->m_fragment_shader, sandbox->m_graphics_device->create_shader(shader_config));
+        }
+
+        {
+            Shader::Configuration shader_config;
+            TRY_ASSIGN(shader_config, sandbox->m_import_manager.import<Shader::Configuration>("Resources/Shaders/BaseObject.vs.glsl"));
+            TRY_ASSIGN(sandbox->m_vertex_shader, sandbox->m_graphics_device->create_shader(shader_config));
+        }
+
+        RHI::Pipeline::Configuration const main_pipeline_config {
+            .vertex_shader = sandbox->m_vertex_shader.get(),
+            .fragment_shader = sandbox->m_fragment_shader.get(),
+            .rasterization = {
+                .cull_mode = RHI::CullMode::None,
+                .front_face = RHI::FrontFace::CounterClockwise,
+                .polygon_mode = RHI::PolygonMode::Line
+            },
+            .depth = {
+                .test_enable = true,
+                .compare_op = RHI::CompareOp::Less
+            },
+            .viewport_width = sandbox->m_swapchain->width(),
+            .viewport_height = sandbox->m_swapchain->height(),
+            .render_pass = sandbox->m_main_render_pass.get()
+        };
+        TRY_ASSIGN(sandbox->m_pipeline, sandbox->m_graphics_device->create_pipeline(main_pipeline_config));
 
         UI::EventDispatcher::register_listener<UI::KeyEvent>([](UI::KeyEvent const&) -> bool {
             std::println("Key event received!");
@@ -119,7 +147,7 @@ public:
             {
                 frame.cmd->begin_render_pass(m_main_render_pass.get(), m_swapchain_render_targets[frame.image_index].get());
                 {
-
+                    frame.cmd->bind_pipeline(m_pipeline.get());
                 }
                 frame.cmd->end_render_pass();
             }
@@ -134,6 +162,10 @@ private:
     std::unique_ptr<RHI::Swapchain> m_swapchain;
     std::unique_ptr<RHI::RenderPass> m_main_render_pass;
     std::vector<std::unique_ptr<RHI::RenderTarget>> m_swapchain_render_targets;
+    std::unique_ptr<RHI::Pipeline> m_pipeline;
+    Asset::ImportManager m_import_manager;
+    std::unique_ptr<RHI::Shader> m_vertex_shader;
+    std::unique_ptr<RHI::Shader> m_fragment_shader;
 };
 
 auto main() -> i32

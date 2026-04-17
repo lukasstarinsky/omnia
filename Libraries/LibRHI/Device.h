@@ -11,6 +11,7 @@
 #include <LibRHI/Buffer.h>
 #include <LibRHI/CommandBuffer.h>
 #include <LibRHI/Export.h>
+#include <LibRHI/Pipeline.h>
 #include <LibRHI/RenderPass.h>
 #include <LibRHI/RenderTarget.h>
 #include <LibRHI/Shader.h>
@@ -50,6 +51,7 @@ public:
     virtual auto select_physical_device(std::string_view name) -> bool = 0;
 
     virtual auto create_buffer(Buffer::Configuration const& config) const -> std::expected<std::unique_ptr<Buffer>, std::string> = 0;
+    virtual auto create_pipeline(Pipeline::Configuration const& config) const -> std::expected<std::unique_ptr<Pipeline>, std::string> = 0;
     virtual auto create_render_pass(RenderPass::Configuration const& config) const -> std::expected<std::unique_ptr<RenderPass>, std::string> = 0;
     virtual auto create_render_target(RenderPass const* render_pass, Texture const* texture) const -> std::expected<std::unique_ptr<RenderTarget>, std::string> = 0;
     virtual auto create_shader(Shader::Configuration const& config) const -> std::expected<std::unique_ptr<Shader>, std::string> = 0;

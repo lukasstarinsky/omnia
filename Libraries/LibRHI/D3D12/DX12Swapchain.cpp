@@ -19,6 +19,16 @@ DX12Swapchain::~DX12Swapchain()
 {
 }
 
+auto DX12Swapchain::width() const -> u32
+{
+    return 0;
+}
+
+auto DX12Swapchain::height() const -> u32
+{
+    return 0;
+}
+
 auto DX12Swapchain::format() const -> Texture::Format
 {
     return Texture::Format::Unknown;

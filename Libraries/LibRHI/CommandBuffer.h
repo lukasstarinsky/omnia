@@ -26,6 +26,8 @@ public:
 
     virtual void begin_render_pass(RenderPass const* render_pass, RenderTarget const* render_target) const = 0;
     virtual void end_render_pass() const = 0;
+
+    virtual void bind_pipeline(Pipeline const* pipeline) const = 0;
 protected:
     CommandBuffer() = default;
 };

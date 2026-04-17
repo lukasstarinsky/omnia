@@ -19,10 +19,16 @@
 namespace RHI {
 
 class VkSwapchain final : public Swapchain {
+    OA_MAKE_NONCOPYABLE(VkSwapchain);
+    OA_MAKE_DEFAULT_MOVABLE(VkSwapchain);
+
 public:
     static auto create(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<VkSwapchain>, std::string>;
 
     ~VkSwapchain() override;
+
+    auto width() const -> u32 override;
+    auto height() const -> u32 override;
 
     auto format() const -> Texture::Format override;
     auto textures() const -> std::vector<std::unique_ptr<Texture>> const& override;

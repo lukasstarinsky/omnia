@@ -24,6 +24,9 @@ public:
 
     ~DX12Swapchain() override;
 
+    auto width() const -> u32 override;
+    auto height() const -> u32 override;
+
     auto format() const -> Texture::Format override;
     auto textures() const -> std::vector<std::unique_ptr<Texture>> const& override;
 

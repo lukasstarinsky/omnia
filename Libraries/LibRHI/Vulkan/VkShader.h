@@ -23,6 +23,7 @@ public:
     ~VkShader() override;
 
     auto config() const -> Configuration const& override;
+    auto handle() const -> VkShaderModule;
 private:
     VkShader() = default;
 private:
@@ -30,5 +31,7 @@ private:
     RHI::VkDevice const* m_device {};
     VkShaderModule m_handle {};
 };
+
+auto to_vk(Shader const* shader) -> RHI::VkShader const*;
 
 }

@@ -29,6 +29,8 @@ public:
 
     void begin_render_pass(RenderPass const* render_pass, RenderTarget const* render_target) const override;
     void end_render_pass() const override;
+
+    void bind_pipeline(Pipeline const* pipeline) const override;
 private:
     VkCommandBuffer() = default;
 private:
