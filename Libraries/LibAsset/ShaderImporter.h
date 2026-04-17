@@ -9,29 +9,9 @@
 #include <Common/Types.h>
 #include <LibAsset/Importer.h>
 #include <LibAsset/Export.h>
+#include <LibGraphics/ShaderTypes.h>
 
 namespace Asset {
-
-enum class ShaderFormat : u8 {
-    SPIRV = 0,
-    DXIL,
-    MetalIR
-};
-
-enum class ShaderStage : u8 {
-    Vertex = 0,
-    Fragment,
-};
-
-struct ShaderVariant {
-    ShaderFormat format;
-    std::vector<u8> bytecode;
-};
-
-struct ShaderData : public ImportedData {
-    ShaderStage stage;
-    std::vector<ShaderVariant> variants;
-};
 
 class ASSET_API ShaderImporter final : public Importer {
 public:

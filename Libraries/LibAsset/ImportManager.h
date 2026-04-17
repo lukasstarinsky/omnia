@@ -20,7 +20,7 @@ public:
 
     void register_importer(std::shared_ptr<Importer> importer);
 
-    template <typename T> requires std::derived_from<T, ImportedData>
+    template <typename T>
     auto import(std::filesystem::path const& path) -> std::expected<T, std::string>
     {
         auto extension = path.extension().string();

@@ -24,20 +24,18 @@ auto ShaderImporter::import(std::filesystem::path const& path) -> std::expected<
 
     auto file_name = path.stem().string();
     auto shader_stage_string = std::string_view(file_name).substr(file_name.find_last_of('.') + 1);
-    ShaderStage shader_stage {};
+    Shader::Stage shader_stage {};
     if (shader_stage_string == "vs") {
-        shader_stage = ShaderStage::Vertex;
+        shader_stage = Shader::Stage::Vertex;
     } else if (shader_stage_string == "fs") {
-        shader_stage = ShaderStage::Fragment;
+        shader_stage = Shader::Stage::Fragment;
     } else {
         return std::unexpected(std::format("Unsupported shader stage '{}'", shader_stage_string));
     }
 
-    ShaderData shader_data;
-    shader_data.name = file_name;
-    shader_data.source_path = path;
-    shader_data.stage = shader_stage;
-    shader_data.variants.reserve(3);
+    Shader::Configuration shader_config;
+    shader_config.stage = shader_stage;
+    shader_config.variants.reserve(3);
 
     auto file_content = File::read_all(path);
     if (!file_content) {
@@ -46,8 +44,8 @@ auto ShaderImporter::import(std::filesystem::path const& path) -> std::expected<
 
     // Compile SPIR-V variant
     {
-        ShaderVariant spirv_variant;
-        spirv_variant.format = ShaderFormat::SPIRV;
+        Shader::Variant spirv_variant;
+        spirv_variant.format = Shader::Format::SPIRV;
 
         auto compiled_spirv = ShaderCompiler::compile_spirv(file_content.value(), shader_stage);
         if (!compiled_spirv) {
@@ -55,22 +53,22 @@ auto ShaderImporter::import(std::filesystem::path const& path) -> std::expected<
         }
 
         spirv_variant.bytecode = std::move(compiled_spirv.value());
-        shader_data.variants.push_back(spirv_variant);
+        shader_config.variants.push_back(spirv_variant);
     }
 
     // Compile DXIL variant
     {
-        ShaderVariant dxil_variant;
-        dxil_variant.format = ShaderFormat::DXIL;
+        Shader::Variant dxil_variant;
+        dxil_variant.format = Shader::Format::DXIL;
     }
 
     // Compile MetalIR variant
     {
-        ShaderVariant metal_ir_variant;
-        metal_ir_variant.format = ShaderFormat::MetalIR;
+        Shader::Variant metal_ir_variant;
+        metal_ir_variant.format = Shader::Format::MetalIR;
     }
 
-    return shader_data;
+    return shader_config;
 }
 
 auto ShaderImporter::supported_extensions() const -> std::vector<std::string>

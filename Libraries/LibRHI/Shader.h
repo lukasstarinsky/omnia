@@ -8,6 +8,7 @@
 
 #include <vector>
 
+#include <LibGraphics/ShaderTypes.h>
 #include <Common/Noncopyable.h>
 #include <Common/Types.h>
 
@@ -18,26 +19,7 @@ class Shader {
     OA_MAKE_DEFAULT_MOVABLE(Shader);
 
 public:
-    enum class Format : u8 {
-        SPIRV = 0,
-        DXIL,
-        MetalIR
-    };
-
-    enum class Stage : u8 {
-        Vertex = 0,
-        Fragment
-    };
-
-    struct Variant {
-        Format format;
-        std::vector<u8> bytecode;
-    };
-
-    struct Configuration {
-        Stage stage;
-        std::vector<Variant> variants;
-    };
+    using Configuration = ::Shader::Configuration;
 
     virtual ~Shader() = default;
 

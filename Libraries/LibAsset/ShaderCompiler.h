@@ -15,6 +15,6 @@
 
 namespace Asset::ShaderCompiler {
 
-auto compile_spirv(std::string_view glsl_source, ShaderStage stage) -> std::expected<std::vector<u8>, std::string>;
+auto compile_spirv(std::string_view glsl_source, Shader::Stage stage) -> std::expected<std::vector<u8>, std::string>;
 
 }

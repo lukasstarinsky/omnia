@@ -15,8 +15,8 @@ auto VkShader::create(Configuration const& config, RHI::VkDevice const* device) 
 {
     assert(!config.variants.empty());
 
-    auto variant_it = std::ranges::find_if(config.variants.begin(), config.variants.end(), [](Variant const& variant) {
-        return variant.format == Format::SPIRV;
+    auto variant_it = std::ranges::find_if(config.variants.begin(), config.variants.end(), [](::Shader::Variant const& variant) {
+        return variant.format == ::Shader::Format::SPIRV;
     });
     assert(variant_it != config.variants.end());
     assert(variant_it->bytecode.size() % 4 == 0);
