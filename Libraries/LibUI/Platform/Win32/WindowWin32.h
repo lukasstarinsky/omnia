@@ -33,6 +33,7 @@ public:
     void poll_events() override;
     auto input() -> Input& override;
     auto is_running() const -> bool override;
+    auto is_minimized() const -> bool override;
     auto title() const -> std::string const& override;
     auto width() const -> i32 override;
     auto height() const -> i32 override;
@@ -51,6 +52,7 @@ private:
     HWND m_handle {};
     HINSTANCE m_instance {};
     bool m_is_running = true;
+    bool m_is_minimized = false;
     Configuration m_config {};
 };
 

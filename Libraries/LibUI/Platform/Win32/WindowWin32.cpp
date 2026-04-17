@@ -109,6 +109,15 @@ auto WindowWin32::handle_message(u32 message, u64 first_param, i64 second_param)
         PostQuitMessage(0);
         return true;
     case WM_SIZE: {
+        auto width = LOWORD(second_param);
+        auto height = HIWORD(second_param);
+
+        if (width == 0 || height == 0) {
+            m_is_minimized = true;
+            return true;
+        }
+
+        m_is_minimized = false;
         m_config.width = LOWORD(second_param);
         m_config.height = HIWORD(second_param);
 
@@ -196,6 +205,11 @@ void WindowWin32::poll_events()
 auto WindowWin32::input() -> Input&
 {
     return m_input;
+}
+
+auto WindowWin32::is_minimized() const -> bool
+{
+    return m_is_minimized;
 }
 
 auto WindowWin32::is_running() const -> bool
