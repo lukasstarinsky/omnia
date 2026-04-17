@@ -10,7 +10,7 @@
 
 namespace Asset::ShaderCompiler {
 
-static auto shader_stage_to_shaderc(ShaderStage stage) -> shaderc_shader_kind
+static auto to_shaderc(ShaderStage stage) -> shaderc_shader_kind
 {
     switch (stage) {
     case ShaderStage::Vertex:
@@ -26,12 +26,13 @@ auto compile_spirv(std::string_view glsl_source, ShaderStage stage) -> std::expe
     shaderc::CompileOptions options;
     options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
-    auto const result = compiler.CompileGlslToSpv(glsl_source.data(), glsl_source.size(), shader_stage_to_shaderc(stage), "Shader", options);
+    auto const result = compiler.CompileGlslToSpv(glsl_source.data(), glsl_source.size(), to_shaderc(stage), "Shader", options);
     if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
         return std::unexpected(std::format("Failed to compile SPIR-V: {}", result.GetErrorMessage()));
     }
 
-    return std::vector<u8>(result.cbegin(), result.cend());
+    std::vector<u32> temp(result.cbegin(), result.cend());
+    return std::vector<u8>(reinterpret_cast<u8*>(temp.data()), reinterpret_cast<u8*>(temp.data() + temp.size()));
 }
 
 }
