@@ -31,6 +31,7 @@ if (LINUX OR WIN32)
             Vulkan/VkPipeline.cpp
             Vulkan/VkRenderPass.cpp
             Vulkan/VkRenderTarget.cpp
+            Vulkan/VkResourceLayout.cpp
             Vulkan/VkShader.cpp
             Vulkan/VkSwapchain.cpp
             Vulkan/VkTexture.cpp

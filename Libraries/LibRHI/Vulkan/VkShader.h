@@ -33,5 +33,6 @@ private:
 };
 
 auto to_vk(Shader const* shader) -> RHI::VkShader const*;
+auto to_vk(::Shader::Stage stage) -> VkShaderStageFlags;
 
 }

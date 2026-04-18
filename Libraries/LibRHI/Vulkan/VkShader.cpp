@@ -61,4 +61,14 @@ auto to_vk(Shader const* shader) -> RHI::VkShader const*
     return static_cast<RHI::VkShader const*>(shader);
 }
 
+auto to_vk(::Shader::Stage stage) -> VkShaderStageFlags
+{
+    switch (stage) {
+    case ::Shader::Stage::Vertex:
+        return VK_SHADER_STAGE_VERTEX_BIT;
+    case ::Shader::Stage::Fragment:
+        return VK_SHADER_STAGE_FRAGMENT_BIT;
+    }
+}
+
 }

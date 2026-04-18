@@ -27,6 +27,7 @@ public:
     auto create_pipeline(Pipeline::Configuration const& config) const -> std::expected<std::unique_ptr<Pipeline>, std::string> override;
     auto create_render_pass(RenderPass::Configuration const& config) const -> std::expected<std::unique_ptr<RenderPass>, std::string> override;
     auto create_render_target(RenderPass const* render_pass, Texture const* texture) const -> std::expected<std::unique_ptr<RenderTarget>, std::string> override;
+    auto create_resource_layout(ResourceLayout::Configuration const& config) const -> std::expected<std::unique_ptr<ResourceLayout>, std::string> override;
     auto create_shader(Shader::Configuration const& config) const -> std::expected<std::unique_ptr<Shader>, std::string> override;
     auto create_swapchain(Swapchain::Configuration const& config) const -> std::expected<std::unique_ptr<Swapchain>, std::string> override;
     auto create_texture(Texture::Configuration const& config) const -> std::expected<std::unique_ptr<Texture>, std::string> override;

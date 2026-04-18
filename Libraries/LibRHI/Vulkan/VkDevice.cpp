@@ -15,6 +15,7 @@
 #include <LibRHI/Vulkan/VkPipeline.h>
 #include <LibRHI/Vulkan/VkRenderPass.h>
 #include <LibRHI/Vulkan/VkRenderTarget.h>
+#include <LibRHI/Vulkan/VkResourceLayout.h>
 #include <LibRHI/Vulkan/VkShader.h>
 #include <LibRHI/Vulkan/VkSwapchain.h>
 #include <LibRHI/Vulkan/VkTexture.h>
@@ -443,6 +444,11 @@ auto VkDevice::create_render_pass(RenderPass::Configuration const& config) const
 auto VkDevice::create_render_target(const RHI::RenderPass* render_pass, const RHI::Texture* texture) const -> std::expected<std::unique_ptr<RenderTarget>, std::string>
 {
     return VkRenderTarget::create(render_pass, texture, this);
+}
+
+auto VkDevice::create_resource_layout(ResourceLayout::Configuration const& config) const -> std::expected<std::unique_ptr<ResourceLayout>, std::string>
+{
+    return VkResourceLayout::create(config, this);
 }
 
 auto VkDevice::create_buffer(Buffer::Configuration const& config) const -> std::expected<std::unique_ptr<Buffer>, std::string>

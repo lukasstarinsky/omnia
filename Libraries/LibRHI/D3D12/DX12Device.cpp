@@ -57,6 +57,12 @@ auto DX12Device::create_render_target(const RHI::RenderPass* render_pass, const 
     return {};
 }
 
+auto DX12Device::create_resource_layout(ResourceLayout::Configuration const& config) const -> std::expected<std::unique_ptr<ResourceLayout>, std::string>
+{
+    (void)config;
+    return {};
+}
+
 auto DX12Device::create_shader(Shader::Configuration const& config) const -> std::expected<std::unique_ptr<Shader>, std::string>
 {
     return DX12Shader::create(config);
