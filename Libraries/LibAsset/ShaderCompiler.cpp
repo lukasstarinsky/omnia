@@ -10,17 +10,17 @@
 
 namespace Asset::ShaderCompiler {
 
-static auto to_shaderc(Shader::Stage stage) -> shaderc_shader_kind
+static auto to_shaderc(RHI::ShaderStage stage) -> shaderc_shader_kind
 {
     switch (stage) {
-    case Shader::Stage::Vertex:
+    case RHI::ShaderStage::Vertex:
         return shaderc_vertex_shader;
-    case Shader::Stage::Fragment:
+    case RHI::ShaderStage::Fragment:
         return shaderc_fragment_shader;
     }
 }
 
-auto compile_spirv(std::string_view glsl_source, Shader::Stage stage) -> std::expected<std::vector<u8>, std::string>
+auto compile_spirv(std::string_view glsl_source, RHI::ShaderStage stage) -> std::expected<std::vector<u8>, std::string>
 {
     shaderc::Compiler const compiler;
     shaderc::CompileOptions options;

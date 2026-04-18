@@ -92,14 +92,14 @@ public:
         TRY_ASSIGN(sandbox->m_triangle_vertex_buffer, sandbox->m_graphics_device->create_buffer(triangle_vertex_buffer_config));
 
         {
-            Shader::Configuration shader_config;
-            TRY_ASSIGN(shader_config, sandbox->m_import_manager.import <Shader::Configuration>("Resources/Shaders/BaseObject.fs.glsl"));
+            RHI::Shader::Configuration shader_config;
+            TRY_ASSIGN(shader_config, sandbox->m_import_manager.import<RHI::Shader::Configuration>("Resources/Shaders/BaseObject.fs.glsl"));
             TRY_ASSIGN(sandbox->m_fragment_shader, sandbox->m_graphics_device->create_shader(shader_config));
         }
 
         {
-            Shader::Configuration shader_config;
-            TRY_ASSIGN(shader_config, sandbox->m_import_manager.import <Shader::Configuration>("Resources/Shaders/BaseObject.vs.glsl"));
+            RHI::Shader::Configuration shader_config;
+            TRY_ASSIGN(shader_config, sandbox->m_import_manager.import<RHI::Shader::Configuration>("Resources/Shaders/BaseObject.vs.glsl"));
             TRY_ASSIGN(sandbox->m_vertex_shader, sandbox->m_graphics_device->create_shader(shader_config));
         }
 

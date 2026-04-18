@@ -4,27 +4,27 @@
 
 #include <Common/Types.h>
 
-namespace Shader {
+namespace RHI {
 
-enum class Format : u8 {
+enum class ShaderFormat : u8 {
     SPIRV = 0,
     DXIL,
     MetalIR
 };
 
-enum class Stage : u8 {
+enum class ShaderStage : u8 {
     Vertex = 0,
     Fragment,
 };
 
-struct Variant {
-    Format format;
+struct ShaderVariant {
+    ShaderFormat format;
     std::vector<u8> bytecode;
 };
 
-struct Configuration {
-    Stage stage;
-    std::vector<Variant> variants;
+struct ShaderConfiguration {
+    ShaderStage stage;
+    std::vector<ShaderVariant> variants;
 };
 
 }

@@ -15,8 +15,8 @@ auto VkShader::create(Configuration const& config, RHI::VkDevice const* device) 
 {
     assert(!config.variants.empty());
 
-    auto variant_it = std::ranges::find_if(config.variants.begin(), config.variants.end(), [](::Shader::Variant const& variant) {
-        return variant.format == ::Shader::Format::SPIRV;
+    auto variant_it = std::ranges::find_if(config.variants.begin(), config.variants.end(), [](ShaderVariant const& variant) {
+        return variant.format == ShaderFormat::SPIRV;
     });
     assert(variant_it != config.variants.end());
     assert(variant_it->bytecode.size() % 4 == 0);
@@ -61,12 +61,12 @@ auto to_vk(Shader const* shader) -> RHI::VkShader const*
     return static_cast<RHI::VkShader const*>(shader);
 }
 
-auto to_vk(::Shader::Stage stage) -> VkShaderStageFlags
+auto to_vk(ShaderStage stage) -> VkShaderStageFlags
 {
     switch (stage) {
-    case ::Shader::Stage::Vertex:
+    case ShaderStage::Vertex:
         return VK_SHADER_STAGE_VERTEX_BIT;
-    case ::Shader::Stage::Fragment:
+    case ShaderStage::Fragment:
         return VK_SHADER_STAGE_FRAGMENT_BIT;
     }
 }
