@@ -9,3 +9,5 @@
 #include <LibMath/Vec2.h>
 #include <LibMath/Vec3.h>
 #include <LibMath/Vec4.h>
+
+#include <LibMath/Mat4.h>
