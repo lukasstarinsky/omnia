@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <Common/Types.h>
 #include <LibAsset/Importer.h>
 #include <LibAsset/Export.h>
 #include <LibGraphics/ShaderTypes.h>

@@ -36,11 +36,12 @@ private:
     RHI::VkDevice const* m_device {};
     VkImage m_image {};
     VkImageView m_image_view {};
+    VmaAllocation m_allocation {};
     bool m_owned = false;
 };
 
-auto to_rhi(VkFormat format) -> Texture::Format;
-auto to_vk(Texture::Format format) -> VkFormat;
+auto to_rhi(VkFormat format) -> TextureFormat;
+auto to_vk(TextureFormat format) -> VkFormat;
 auto to_vk(Texture const* texture) -> VkTexture const*;
 
 }

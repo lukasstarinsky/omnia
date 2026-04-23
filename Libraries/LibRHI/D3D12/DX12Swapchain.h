@@ -27,7 +27,7 @@ public:
     auto width() const -> u32 override;
     auto height() const -> u32 override;
 
-    auto format() const -> Texture::Format override;
+    auto format() const -> TextureFormat override;
     auto textures() const -> std::vector<std::unique_ptr<Texture>> const& override;
 
     auto is_dirty() const -> bool override;

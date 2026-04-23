@@ -7,13 +7,12 @@
 #pragma once
 
 #include <LibAsset/Importer.h>
+#include <LibAsset/Export.h>
+#include <LibGraphics/TextureTypes.h>
 
 namespace Asset {
 
-struct TextureData : public ImportedData {
-};
-
-class TextureImporter final : public Importer {
+class ASSET_API TextureImporter final : public Importer {
 public:
     auto import(std::filesystem::path const& path) -> std::expected<std::any, std::string> override;
     auto supported_extensions() const -> std::vector<std::string> override;

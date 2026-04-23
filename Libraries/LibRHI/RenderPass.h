@@ -35,7 +35,7 @@ class RenderPass {
 public:
     struct Configuration {
         struct Attachment {
-            Texture::Format format {};
+            TextureFormat format {};
             LoadOp load_op {};
             StoreOp store_op {};
             Math::Vec4f clear_color;

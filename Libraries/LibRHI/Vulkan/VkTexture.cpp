@@ -29,7 +29,8 @@ auto VkTexture::create_borrowed(Configuration const& config, const RHI::VkDevice
 
 VkTexture::~VkTexture()
 {
-    if (m_owned) {
+    if (m_owned && m_image != VK_NULL_HANDLE) {
+        vmaDestroyImage(m_device->allocator(), m_image, m_allocation);
     }
     if (m_image_view != VK_NULL_HANDLE) {
         vkDestroyImageView(m_device->handle(), m_image_view, nullptr);
@@ -51,10 +52,10 @@ auto VkTexture::image_view() const -> VkImageView
     return m_image_view;
 }
 
-auto to_rhi(VkFormat format) -> Texture::Format
+auto to_rhi(VkFormat format) -> TextureFormat
 {
     switch (format) {
-        using enum Texture::Format;
+        using enum TextureFormat;
     case VK_FORMAT_B8G8R8A8_SRGB:
         return B8G8R8A8_SRGB;
     case VK_FORMAT_B8G8R8A8_UNORM:
@@ -64,10 +65,10 @@ auto to_rhi(VkFormat format) -> Texture::Format
     }
 }
 
-auto to_vk(Texture::Format format) -> VkFormat
+auto to_vk(TextureFormat format) -> VkFormat
 {
     switch (format) {
-        using enum Texture::Format;
+        using enum TextureFormat;
     case B8G8R8A8_SRGB:
         return VK_FORMAT_B8G8R8A8_SRGB;
     case B8G8R8A8_UNORM:

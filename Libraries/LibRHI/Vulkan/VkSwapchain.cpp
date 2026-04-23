@@ -62,7 +62,7 @@ auto VkSwapchain::height() const -> u32
     return m_extent.height;
 }
 
-auto VkSwapchain::format() const -> Texture::Format
+auto VkSwapchain::format() const -> TextureFormat
 {
     return to_rhi(m_surface_format.format);
 }
@@ -247,7 +247,8 @@ auto VkSwapchain::create_images() -> std::expected<void, std::string>
         Texture::Configuration const texture_config {
             .width = m_extent.width,
             .height = m_extent.height,
-            .format = to_rhi(m_surface_format.format)
+            .format = to_rhi(m_surface_format.format),
+            .data = {}
         };
 
         VkImageViewCreateInfo const image_view_create_info {
