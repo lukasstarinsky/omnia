@@ -2,7 +2,7 @@ include(CMakeParseArguments)
 include(GenerateExportHeader)
 
 function(omnia_lib target)
-    cmake_parse_arguments(OMNIA "" "" "SOURCES;LIBS;THIRD_PARTY" ${ARGN})
+    cmake_parse_arguments(OMNIA "" "" "SOURCES;LIBS;THIRD_PARTY;INCLUDE_DIRS" ${ARGN})
 
     add_library(${target})
 
@@ -25,7 +25,7 @@ function(omnia_lib target)
 
     target_include_directories(${target} PUBLIC
             $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-            PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+            ${OMNIA_INCLUDE_DIRS}
     )
 endfunction()
 
@@ -36,7 +36,6 @@ function(omnia_app target)
 
     target_sources(${target} PRIVATE ${OMNIA_SOURCES})
     target_link_libraries(${target} PRIVATE Common ${OMNIA_LIBS} ${OMNIA_THIRD_PARTY})
-    target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     if (OMNIA_LIBS)
         add_dependencies(${target} ${OMNIA_LIBS})
     endif ()
