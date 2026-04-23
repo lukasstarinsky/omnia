@@ -8,6 +8,7 @@
 #include <LibAsset/ImportManager.h>
 #include <LibAsset/ShaderImporter.h>
 #include <LibAsset/TextureImporter.h>
+#include <LibMath/Math.h>
 #include <LibRHI/Device.h>
 #include <LibUI/Platform/Event.h>
 #include <LibUI/Platform/Window.h>
@@ -82,10 +83,10 @@ public:
         };
 
         std::vector<Vertex> const triangle_vertices {
-            { .position = {  0.5F, -0.5F, 1.0F }, .tex_coords = { 1.0F, 0.0F } },
-            { .position = {  0.5F,  0.5F, 1.0F }, .tex_coords = { 1.0F, 1.0F } },
-            { .position = { -0.5F,  0.5F, 1.0F }, .tex_coords = { 0.0F, 1.0F } },
-            { .position = { -0.5F, -0.5F, 1.0F }, .tex_coords = { 0.0F, 0.0F } }
+            { .position = {  0.5F, -0.5F, -1.0F }, .tex_coords = { 1.0F, 0.0F } },
+            { .position = {  0.5F,  0.5F, -1.0F }, .tex_coords = { 1.0F, 1.0F } },
+            { .position = { -0.5F,  0.5F, -1.0F }, .tex_coords = { 0.0F, 1.0F } },
+            { .position = { -0.5F, -0.5F, -1.0F }, .tex_coords = { 0.0F, 0.0F } }
         };
 
         RHI::Buffer::Configuration const triangle_vertex_buffer_config {
@@ -121,6 +122,12 @@ public:
         TRY_ASSIGN(texture_config, sandbox->m_import_manager.import<RHI::Texture::Configuration>("Resources/Textures/texture.jpg"));
         TRY_ASSIGN(sandbox->m_texture, sandbox->m_graphics_device->create_texture(texture_config));
 
+        RHI::Buffer::Configuration const uniform_buffer_config {
+            .size = sizeof(Math::Mat4f),
+            .usage = RHI::BufferUsage::Uniform
+        };
+        TRY_ASSIGN(sandbox->m_per_frame, sandbox->m_graphics_device->create_buffer(uniform_buffer_config));
+
         RHI::ResourceLayout::Configuration const main_resource_layout_config {
             .bindings = {
                 {
@@ -132,6 +139,11 @@ public:
                     .binding = 1,
                     .type = RHI::ResourceType::Sampler,
                     .stage = RHI::ShaderStage::Fragment
+                },
+                {
+                    .binding = 2,
+                    .type = RHI::ResourceType::UniformBuffer,
+                    .stage = RHI::ShaderStage::Vertex
                 }
             }
         };
@@ -154,6 +166,7 @@ public:
         TRY_ASSIGN(sandbox->m_resource_set, sandbox->m_graphics_device->create_resource_set(resource_set_config));
         sandbox->m_resource_set->set_texture(0, sandbox->m_texture.get());
         sandbox->m_resource_set->set_sampler(1, sandbox->m_sampler.get());
+        sandbox->m_resource_set->set_uniform_buffer(2, sandbox->m_per_frame.get());
 
         RHI::Pipeline::Configuration const main_pipeline_config {
             .vertex_shader = sandbox->m_vertex_shader.get(),
@@ -254,6 +267,10 @@ public:
             if (!frame.has_value()) {
                 continue;
             }
+
+            auto projection = Math::Mat4f::perspective(DEG_TO_RAD(90.0F), static_cast<f32>(m_swapchain->width()) / static_cast<f32>(m_swapchain->height()), 0.1F, 100.0F);
+            m_per_frame->set_data(projection.data(), sizeof(Math::Mat4f));
+
             auto [cmd, image_index, frame_index] = frame.value();
             {
                 cmd->begin_render_pass(m_main_render_pass.get(), m_swapchain_render_targets[image_index].get());
@@ -296,6 +313,7 @@ private:
     std::unique_ptr<RHI::ResourceSet> m_resource_set;
     std::unique_ptr<RHI::Texture> m_texture;
     std::unique_ptr<RHI::Sampler> m_sampler;
+    std::unique_ptr<RHI::Buffer> m_per_frame;
     bool m_was_window_resized = false;
 };
 
