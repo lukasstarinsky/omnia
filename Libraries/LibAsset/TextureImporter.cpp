@@ -39,10 +39,10 @@ auto TextureImporter::import(std::filesystem::path const& path) -> std::expected
     }
     auto const size = static_cast<std::size_t>(width) * height * 4;
 
-    RHI::TextureConfiguration texture_config {
+    Graphics::TextureConfiguration texture_config {
         .width = static_cast<u32>(width),
         .height = static_cast<u32>(height),
-        .format = RHI::TextureFormat::R8G8B8A8_SRGB,
+        .format = Graphics::TextureFormat::R8G8B8A8_SRGB,
         .data = std::vector<u8>(size),
     };
     std::memcpy(texture_config.data.data(), data, size);

@@ -62,9 +62,9 @@ auto VkSwapchain::height() const -> u32
     return m_extent.height;
 }
 
-auto VkSwapchain::format() const -> TextureFormat
+auto VkSwapchain::format() const -> Graphics::TextureFormat
 {
-    return to_rhi(m_surface_format.format);
+    return to_graphics(m_surface_format.format);
 }
 
 auto VkSwapchain::textures() const -> std::vector<std::unique_ptr<Texture>> const&
@@ -248,7 +248,7 @@ auto VkSwapchain::create_images() -> std::expected<void, std::string>
         Texture::Configuration const texture_config {
             .width = m_extent.width,
             .height = m_extent.height,
-            .format = to_rhi(m_surface_format.format),
+            .format = to_graphics(m_surface_format.format),
             .data = {}
         };
 

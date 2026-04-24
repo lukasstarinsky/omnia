@@ -17,7 +17,7 @@ class Texture {
     OA_MAKE_DEFAULT_MOVABLE(Texture);
 
 public:
-    using Configuration = TextureConfiguration;
+    using Configuration = Graphics::TextureConfiguration;
 
     virtual ~Texture() = default;
 

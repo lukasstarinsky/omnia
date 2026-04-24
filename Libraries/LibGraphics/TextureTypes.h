@@ -10,7 +10,7 @@
 
 #include <Common/Types.h>
 
-namespace RHI {
+namespace Graphics {
 
 enum class TextureFormat : u8 {
     Unknown = 0,

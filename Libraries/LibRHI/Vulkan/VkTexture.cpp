@@ -136,10 +136,10 @@ auto VkTexture::image_view() const -> VkImageView
     return m_image_view;
 }
 
-auto to_rhi(VkFormat format) -> TextureFormat
+auto to_graphics(VkFormat format) -> Graphics::TextureFormat
 {
     switch (format) {
-        using enum TextureFormat;
+        using enum Graphics::TextureFormat;
     case VK_FORMAT_B8G8R8A8_SRGB:
         return B8G8R8A8_SRGB;
     case VK_FORMAT_R8G8B8A8_SRGB:
@@ -153,10 +153,10 @@ auto to_rhi(VkFormat format) -> TextureFormat
     }
 }
 
-auto to_vk(TextureFormat format) -> VkFormat
+auto to_vk(Graphics::TextureFormat format) -> VkFormat
 {
     switch (format) {
-        using enum TextureFormat;
+        using enum Graphics::TextureFormat;
     case B8G8R8A8_SRGB:
         return VK_FORMAT_B8G8R8A8_SRGB;
     case R8G8B8A8_SRGB:

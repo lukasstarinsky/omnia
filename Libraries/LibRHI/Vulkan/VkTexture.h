@@ -40,8 +40,8 @@ private:
     bool m_owned = false;
 };
 
-auto to_rhi(VkFormat format) -> TextureFormat;
-auto to_vk(TextureFormat format) -> VkFormat;
+auto to_graphics(VkFormat format) -> Graphics::TextureFormat;
+auto to_vk(Graphics::TextureFormat format) -> VkFormat;
 auto to_vk(Texture const* texture) -> VkTexture const*;
 
 }

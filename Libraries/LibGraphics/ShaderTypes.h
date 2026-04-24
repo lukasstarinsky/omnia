@@ -10,7 +10,7 @@
 
 #include <Common/Types.h>
 
-namespace RHI {
+namespace Graphics {
 
 enum class ShaderFormat : u8 {
     SPIRV = 0,

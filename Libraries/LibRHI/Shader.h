@@ -19,7 +19,7 @@ class Shader {
     OA_MAKE_DEFAULT_MOVABLE(Shader);
 
 public:
-    using Configuration = ShaderConfiguration;
+    using Configuration = Graphics::ShaderConfiguration;
 
     virtual ~Shader() = default;
 

@@ -154,17 +154,17 @@ public:
                 {
                     .binding = 0,
                     .type = RHI::ResourceType::Texture,
-                    .stage = RHI::ShaderStage::Fragment
+                    .stage = Graphics::ShaderStage::Fragment
                 },
                 {
                     .binding = 1,
                     .type = RHI::ResourceType::Sampler,
-                    .stage = RHI::ShaderStage::Fragment
+                    .stage = Graphics::ShaderStage::Fragment
                 },
                 {
                     .binding = 2,
                     .type = RHI::ResourceType::UniformBuffer,
-                    .stage = RHI::ShaderStage::Vertex
+                    .stage = Graphics::ShaderStage::Vertex
                 }
             }
         };
