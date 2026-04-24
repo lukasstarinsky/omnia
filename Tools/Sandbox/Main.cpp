@@ -9,6 +9,7 @@
 #include <LibAsset/ShaderImporter.h>
 #include <LibAsset/TextureImporter.h>
 #include <LibMath/Math.h>
+#include <LibRenderer/Camera.h>
 #include <LibRHI/Device.h>
 #include <LibUI/Platform/Event.h>
 #include <LibUI/Platform/Window.h>
@@ -26,6 +27,12 @@
     }                                                          \
     (void)0
 
+struct PerFrameData {
+    Math::Mat4f projection;
+    Math::Mat4f view;
+};
+
+// TODO: Cleanup all into LibRenderer
 class Sandbox final {
 public:
     static auto create() -> std::expected<std::unique_ptr<Sandbox>, std::string>
@@ -55,6 +62,20 @@ public:
             .frames_in_flight = 2
         };
         TRY_ASSIGN(sandbox->m_swapchain, sandbox->m_graphics_device->create_swapchain(swapchain_config));
+
+        Renderer::Camera::Configuration const camera_config {
+            .projection_type = Renderer::ProjectionType::Perspective,
+            .position = { 0.0F, 0.0F, 0.0F },
+            .look_at = { 0.0F, 0.0F, -1.0F },
+            .up = { 0.0F, 1.0F, 0.0F },
+            .perspective = {
+                .aspect_ratio = static_cast<f32>(swapchain_config.width) / static_cast<f32>(swapchain_config.height),
+                .field_of_view_degrees = 90.0F,
+                .near_plane = 0.1F,
+                .far_plane = 100.0F
+            }
+        };
+        sandbox->m_camera = Renderer::Camera(camera_config);
 
         RHI::RenderPass::Configuration const main_render_pass_config {
             .color_attachments = {
@@ -123,7 +144,7 @@ public:
         TRY_ASSIGN(sandbox->m_texture, sandbox->m_graphics_device->create_texture(texture_config));
 
         RHI::Buffer::Configuration const uniform_buffer_config {
-            .size = sizeof(Math::Mat4f),
+            .size = sizeof(PerFrameData),
             .usage = RHI::BufferUsage::Uniform
         };
         TRY_ASSIGN(sandbox->m_per_frame, sandbox->m_graphics_device->create_buffer(uniform_buffer_config));
@@ -212,6 +233,7 @@ public:
 
     auto on_resize([[maybe_unused]] UI::WindowResizeEvent const& event) -> bool
     {
+        m_camera.set_aspect_ratio(static_cast<f32>(m_window->width()) / static_cast<f32>(m_window->height()));
         m_was_window_resized = true;
         return true;
     }
@@ -268,8 +290,29 @@ public:
                 continue;
             }
 
-            auto projection = Math::Mat4f::perspective(DEG_TO_RAD(90.0F), static_cast<f32>(m_swapchain->width()) / static_cast<f32>(m_swapchain->height()), 0.1F, 100.0F);
-            m_per_frame->set_data(projection.data(), sizeof(Math::Mat4f));
+            if (m_window->input().is_key_down(UI::Key::W)) {
+                m_camera.translate({ 0.0F, 0.0F, -0.01F });
+            } else if (m_window->input().is_key_down(UI::Key::S)) {
+                m_camera.translate({ 0.0F, 0.0F, 0.01F });
+            }
+
+            if (m_window->input().is_key_down(UI::Key::A)) {
+                m_camera.translate({ -0.01F, 0.0F, 0.0F });
+            } else if (m_window->input().is_key_down(UI::Key::D)) {
+                m_camera.translate({ 0.01F, 0.0F, 0.0F });
+            }
+
+            if (m_window->input().is_key_down(UI::Key::Space)) {
+                m_camera.translate({ 0.0F, -0.01F, 0.0F });
+            } else if (m_window->input().is_key_down(UI::Key::Control)) {
+                m_camera.translate({ 0.0F, 0.01F, 0.0F });
+            }
+
+            PerFrameData const per_frame_data {
+                .projection = m_camera.projection(),
+                .view = m_camera.view()
+            };
+            m_per_frame->set_data(&per_frame_data, sizeof(PerFrameData));
 
             auto [cmd, image_index, frame_index] = frame.value();
             {
@@ -315,6 +358,7 @@ private:
     std::unique_ptr<RHI::Sampler> m_sampler;
     std::unique_ptr<RHI::Buffer> m_per_frame;
     bool m_was_window_resized = false;
+    Renderer::Camera m_camera {};
 };
 
 auto main() -> i32
