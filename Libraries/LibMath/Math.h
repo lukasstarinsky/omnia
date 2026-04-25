@@ -8,10 +8,10 @@
 
 #include <numbers>
 
+#include <LibMath/Mat4.h>
+#include <LibMath/Quat.h>
 #include <LibMath/Vec2.h>
 #include <LibMath/Vec3.h>
 #include <LibMath/Vec4.h>
-
-#include <LibMath/Mat4.h>
 
 #define DEG_TO_RAD(angle_in_degrees) ((angle_in_degrees) * std::numbers::pi_v<f32> / 180.0F)

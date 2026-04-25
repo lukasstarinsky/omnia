@@ -28,17 +28,6 @@ public:
     {
     }
 
-    constexpr void normalize()
-    {
-        auto const length = std::sqrt(x * x + y * y + z * z);
-
-        if (length != 0) {
-            x /= length;
-            y /= length;
-            z /= length;
-        }
-    }
-
     constexpr auto operator+(Vec3<T> const& other) const -> Vec3
     {
         return Vec3 {
@@ -83,26 +72,61 @@ public:
         return *this;
     }
 
-    static constexpr auto normalize(Vec3<T> vec) -> Vec3
+    constexpr auto operator-=(Vec3<T> const& other) -> Vec3&
     {
-        vec.normalize();
-        return vec;
+        x -= other.x;
+        y -= other.y;
+        z -= other.z;
+        return *this;
     }
 
-    static constexpr auto cross(Vec3<T> const& a, Vec3<T> const& b) -> Vec3
+    constexpr auto length() const -> T
     {
-        return Vec3 {
-            a.y * b.z - a.z * b.y,
-            a.z * b.x - a.x * b.z,
-            a.x * b.y - a.y * b.x
-        };
+        return std::sqrt((x * x) + (y * y) + (z * z));
     }
 
-    static constexpr auto dot(Vec3<T> const& a, Vec3<T> const& b) -> T
+    constexpr void normalize()
     {
-        return a.x * b.x + a.y * b.y + a.z * b.z;
+        auto length = this->length();
+
+        if (length != 0) {
+            x /= length;
+            y /= length;
+            z /= length;
+        }
+    }
+
+    constexpr auto normalized() const -> Vec3
+    {
+        auto length = this->length();
+
+        if (length != 0) {
+            return Vec3 {
+                x / length,
+                y / length,
+                z / length
+            };
+        }
+
+        return *this;
     }
 };
+
+template <typename T>
+constexpr auto cross(Vec3<T> const& a, Vec3<T> const& b) -> Vec3<T>
+{
+    return Vec3<T> {
+        (a.y * b.z) - (a.z * b.y),
+        (a.z * b.x) - (a.x * b.z),
+        (a.x * b.y) - (a.y * b.x)
+    };
+}
+
+template <typename T>
+constexpr auto dot(Vec3<T> const& a, Vec3<T> const& b) -> T
+{
+    return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
+}
 
 using Vec3f = Vec3<f32>;
 using Vec3d = Vec3<f64>;

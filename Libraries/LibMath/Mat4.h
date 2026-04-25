@@ -11,6 +11,8 @@
 #include <cmath>
 
 #include <Common/Types.h>
+#include <LibMath/Vec3.h>
+#include <LibMath/Quat.h>
 
 namespace Math {
 
@@ -49,6 +51,15 @@ public:
         return m_elements[index];
     }
 
+    constexpr auto translate(Vec3<T> const& translation) const -> Mat4
+    {
+        Mat4 result = *this;
+        result[12] += m_elements[0] * translation.x + m_elements[4] * translation.y + m_elements[8] * translation.z;
+        result[13] += m_elements[1] * translation.x + m_elements[5] * translation.y + m_elements[9] * translation.z;
+        result[14] += m_elements[2] * translation.x + m_elements[6] * translation.y + m_elements[10] * translation.z;
+        return result;
+    }
+
     static constexpr auto identity() -> Mat4
     {
         return Mat4(1);
@@ -76,10 +87,10 @@ public:
 
     static constexpr auto look_at(Vec3<T> const& eye, Vec3<T> const& look_at, Vec3<T> const& up) -> Mat4
     {
-        auto const up_normalized = Vec3f::normalize(up);
-        auto const f = Vec3f::normalize(look_at - eye);
-        auto const l = Vec3f::normalize(Vec3f::cross(f, up_normalized));
-        auto const u = Vec3f::normalize(Vec3f::cross(l, f));
+        auto const up_normalized = up.normalized();
+        auto const f = (look_at - eye).normalized();
+        auto const l = cross(up_normalized, f).normalized();
+        auto const u = cross(l, f).normalized();
 
         Mat4 result {};
         result[0] = l.x;
@@ -91,10 +102,36 @@ public:
         result[2] = -f.x;
         result[6] = -f.y;
         result[10] = -f.z;
-        result[12] = -Vec3f::dot(l, eye);
-        result[13] = -Vec3f::dot(u, eye);
-        result[14] = Vec3f::dot(f, eye);
+        result[12] = -dot(l, eye);
+        result[13] = -dot(u, eye);
+        result[14] = dot(f, eye);
         result[15] = 1.0f;
+        return result;
+    }
+
+    static constexpr auto from_quaternion(Quat<T> const& quat) -> Mat4
+    {
+        auto const xx = quat.x * quat.x;
+        auto const yy = quat.y * quat.y;
+        auto const zz = quat.z * quat.z;
+        auto const xy = quat.x * quat.y;
+        auto const xz = quat.x * quat.z;
+        auto const yz = quat.y * quat.z;
+        auto const wx = quat.w * quat.x;
+        auto const wy = quat.w * quat.y;
+        auto const wz = quat.w * quat.z;
+
+        Mat4 result {};
+        result[0] = 1 - (2 * (yy + zz));
+        result[1] = 2 * (xy - wz);
+        result[2] = 2 * (xz + wy);
+        result[4] = 2 * (xy + wz);
+        result[5] = 1 - (2 * (xx + zz));
+        result[6] = 2 * (yz - wx);
+        result[8] = 2 * (xz - wy);
+        result[9] = 2 * (yz + wx);
+        result[10] = 1 - (2 * (xx + yy));
+        result[15] = 1;
         return result;
     }
 private:
