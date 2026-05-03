@@ -6,8 +6,11 @@
 
 #pragma once
 
+#include <optional>
+#include <string>
 #include <vector>
 
+#include <LibGraphics/TextureTypes.h>
 #include <LibMath/Math.h>
 
 namespace Graphics {
@@ -20,13 +23,20 @@ struct Vertex {
 
 using Index = u32;
 
-struct SubMesh {
+struct MaterialConfiguration {
+    std::string name;
+    std::optional<TextureConfiguration> albedo_texture_configuration = std::nullopt;
+};
+
+struct SubMeshConfiguration {
     std::vector<Vertex> vertices;
     std::vector<Index> indices;
+    u64 material_index;
 };
 
 struct ModelConfiguration {
-    std::vector<SubMesh> sub_meshes;
+    std::vector<SubMeshConfiguration> sub_meshes;
+    std::vector<MaterialConfiguration> materials;
 };
 
 }

@@ -12,7 +12,7 @@ void ImportManager::register_default_importers()
 {
     register_importer(std::make_shared<ShaderImporter>());
     register_importer(std::make_shared<TextureImporter>());
-    register_importer(std::make_shared<ModelImporter>());
+    register_importer(std::make_shared<ModelImporter>(this));
 }
 
 void ImportManager::register_importer(std::shared_ptr<Importer> importer)

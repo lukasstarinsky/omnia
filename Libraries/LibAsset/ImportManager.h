@@ -25,7 +25,7 @@ public:
     void register_importer(std::shared_ptr<Importer> importer);
 
     template<typename T>
-    auto import(std::filesystem::path const& path) -> std::expected<T, std::string>
+    auto import(std::filesystem::path const& path) const -> std::expected<T, std::string>
     {
         auto extension = path.extension().string();
         auto it = m_importers.find(extension);

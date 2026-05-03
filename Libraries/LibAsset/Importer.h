@@ -14,11 +14,6 @@
 
 namespace Asset {
 
-struct ImportedData {
-    std::string name;
-    std::filesystem::path source_path;
-};
-
 class Importer {
     OA_MAKE_NONCOPYABLE(Importer);
     OA_MAKE_DEFAULT_MOVABLE(Importer);
