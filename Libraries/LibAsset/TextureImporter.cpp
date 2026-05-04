@@ -12,14 +12,14 @@
 
 namespace Asset {
 
-auto TextureImporter::import(std::filesystem::path const& path) -> std::expected<std::any, std::string>
+auto TextureImporter::import(std::filesystem::path const& path) -> std::expected<Graphics::TextureConfiguration, std::string>
 {
     if (!std::filesystem::exists(path)) {
         return std::unexpected(std::format("Texture file '{}' does not exist", path.string()));
     }
 
     auto extension = path.extension().string();
-    auto supported_extensions = this->supported_extensions();
+    auto supported_extensions = TextureImporter::supported_extensions();
     if (std::ranges::find(supported_extensions.begin(), supported_extensions.end(), extension) == supported_extensions.end()) {
         return std::unexpected(std::format("Unsupported texture file extension '{}'", extension));
     }
@@ -39,19 +39,17 @@ auto TextureImporter::import(std::filesystem::path const& path) -> std::expected
     }
     auto const size = static_cast<std::size_t>(width) * height * 4;
 
-    Graphics::TextureConfiguration texture_config {
-        .width = static_cast<u32>(width),
-        .height = static_cast<u32>(height),
-        .format = Graphics::TextureFormat::R8G8B8A8_SRGB,
-        .data = std::vector<u8>(size),
-    };
+    Graphics::TextureConfiguration texture_config;
+    texture_config.width = static_cast<u32>(width);
+    texture_config.height = static_cast<u32>(height);
+    texture_config.format = Graphics::TextureFormat::R8G8B8A8_SRGB;
+    texture_config.data.resize(size);
     std::memcpy(texture_config.data.data(), data, size);
     stbi_image_free(data);
-
     return texture_config;
 }
 
-auto TextureImporter::supported_extensions() const -> std::vector<std::string>
+auto TextureImporter::supported_extensions() -> std::vector<std::string>
 {
     return { ".png", ".jpg", ".jpeg", ".bmp", ".tga" };
 }

@@ -6,16 +6,25 @@
 
 #pragma once
 
-#include <LibAsset/Importer.h>
+#include <functional>
+
 #include <LibAsset/Export.h>
+#include <LibAsset/Importer.h>
 #include <LibGraphics/TextureTypes.h>
 
 namespace Asset {
 
-class ASSET_API TextureImporter final : public Importer {
+using TextureResolver = std::function<Graphics::TextureConfiguration(std::string const&)>;
+
+class ASSET_API TextureImporter final {
 public:
-    auto import(std::filesystem::path const& path) -> std::expected<std::any, std::string> override;
-    auto supported_extensions() const -> std::vector<std::string> override;
+    static auto import(std::filesystem::path const& path) -> std::expected<Graphics::TextureConfiguration, std::string>;
+    static auto supported_extensions() -> std::vector<std::string>;
+};
+
+template<>
+struct ImporterTrait<Graphics::TextureConfiguration> {
+    using type = TextureImporter;
 };
 
 }

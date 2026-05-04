@@ -10,14 +10,14 @@
 
 namespace Asset {
 
-auto ShaderImporter::import(std::filesystem::path const& path) -> std::expected<std::any, std::string>
+auto ShaderImporter::import(std::filesystem::path const& path) -> std::expected<Graphics::ShaderConfiguration, std::string>
 {
     if (!std::filesystem::exists(path)) {
         return std::unexpected(std::format("Shader file '{}' does not exist", path.string()));
     }
 
     auto extension = path.extension().string();
-    auto supported_extensions = this->supported_extensions();
+    auto supported_extensions = ShaderImporter::supported_extensions();
     if (std::ranges::find(supported_extensions.begin(), supported_extensions.end(), extension) == supported_extensions.end()) {
         return std::unexpected(std::format("Unsupported shader file extension '{}'", extension));
     }
@@ -71,7 +71,7 @@ auto ShaderImporter::import(std::filesystem::path const& path) -> std::expected<
     return shader_config;
 }
 
-auto ShaderImporter::supported_extensions() const -> std::vector<std::string>
+auto ShaderImporter::supported_extensions() -> std::vector<std::string>
 {
     return { ".glsl" };
 }

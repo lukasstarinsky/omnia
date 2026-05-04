@@ -7,49 +7,42 @@
 #include <unordered_map>
 
 #include <Common/File.h>
-#include <LibAsset/ImportManager.h>
 #include <LibAsset/ModelImporter.h>
 
 namespace Asset {
 
-ModelImporter::ModelImporter(Asset::ImportManager const* import_manager)
-    : m_import_manager(import_manager)
-{
-}
-
-auto ModelImporter::import(std::filesystem::path const& path) -> std::expected<std::any, std::string>
+auto ModelImporter::import(std::filesystem::path const& path, TextureResolver const& texture_resolver) -> std::expected<Graphics::ModelConfiguration, std::string>
 {
     if (!std::filesystem::exists(path)) {
         return std::unexpected(std::format("Model file '{}' does not exist", path.string()));
     }
 
     auto extension = path.extension().string();
-    auto supported_extensions = this->supported_extensions();
+    auto supported_extensions = ModelImporter::supported_extensions();
     if (std::ranges::find(supported_extensions.begin(), supported_extensions.end(), extension) == supported_extensions.end()) {
         return std::unexpected(std::format("Unsupported model file extension '{}'", extension));
     }
 
     if (extension == ".obj") {
-        return import_obj(path);
+        return import_obj(path, texture_resolver);
     }
 
     return {};
 }
 
-auto ModelImporter::supported_extensions() const -> std::vector<std::string>
+auto ModelImporter::supported_extensions() -> std::vector<std::string>
 {
     return { ".obj" };
 }
 
-auto ModelImporter::import_obj(std::filesystem::path const& path) const -> std::expected<std::any, std::string>
+auto ModelImporter::import_obj(std::filesystem::path const& path, TextureResolver const& texture_resolver) -> std::expected<Graphics::ModelConfiguration, std::string>
 {
     auto lines = File::read_lines(path);
     if (!lines) {
         return std::unexpected(std::move(lines.error()));
     }
 
-    Graphics::ModelConfiguration model_configuration;
-
+    Graphics::ModelConfiguration model_config;
     std::unordered_map<std::string, u32> vertex_cache;
     std::vector<Math::Vec3f> positions;
     std::vector<Math::Vec2f> tex_coords;
@@ -69,17 +62,17 @@ auto ModelImporter::import_obj(std::filesystem::path const& path) const -> std::
             std::filesystem::path mtl_path;
             line_stream >> mtl_path;
             mtl_path = path.parent_path() / mtl_path;
-            auto materials_result = import_mtl(mtl_path);
+            auto materials_result = import_mtl(mtl_path, texture_resolver);
             if (!materials_result) {
                 return std::unexpected(std::move(materials_result).error());
             }
-            model_configuration.materials = std::move(materials_result).value();
+            model_config.materials = std::move(materials_result).value();
         } else if (token == "usemtl") {
             std::string material_name;
             line_stream >> material_name;
 
-            for (std::size_t i = 0; i < model_configuration.materials.size(); ++i) {
-                if (model_configuration.materials[i].name == material_name) {
+            for (std::size_t i = 0; i < model_config.materials.size(); ++i) {
+                if (model_config.materials[i].name == material_name) {
                     current_material_index = i;
                     current_material_changed = true;
                     break;
@@ -98,10 +91,11 @@ auto ModelImporter::import_obj(std::filesystem::path const& path) const -> std::
             line_stream >> normal.x >> normal.y >> normal.z;
         } else if (token == "f") {
             if (current_submesh == nullptr || current_material_changed) {
-                model_configuration.sub_meshes.emplace_back();
-                current_submesh = &model_configuration.sub_meshes.back();
+                model_config.sub_meshes.emplace_back();
+                current_submesh = &model_config.sub_meshes.back();
                 current_submesh->material_index = current_material_index;
                 current_material_changed = false;
+                vertex_cache.clear();
             }
 
             std::vector<std::string> face_tokens;
@@ -149,17 +143,17 @@ auto ModelImporter::import_obj(std::filesystem::path const& path) const -> std::
         }
     }
 
-    return model_configuration;
+    return model_config;
 }
 
-auto ModelImporter::import_mtl(std::filesystem::path const& path) const -> std::expected<std::vector<Graphics::MaterialConfiguration>, std::string>
+auto ModelImporter::import_mtl(std::filesystem::path const& path, TextureResolver const& texture_resolver) -> std::expected<std::vector<Graphics::MaterialConfiguration>, std::string>
 {
     auto lines = File::read_lines(path);
     if (!lines) {
         return std::unexpected(std::move(lines).error());
     }
 
-    std::vector<Graphics::MaterialConfiguration> material_configurations;
+    std::vector<Graphics::MaterialConfiguration> material_config;
     Graphics::MaterialConfiguration* current_material = nullptr;
 
     for (auto const& line : lines.value()) {
@@ -168,24 +162,21 @@ auto ModelImporter::import_mtl(std::filesystem::path const& path) const -> std::
         line_stream >> token;
 
         if (token == "newmtl") {
-            material_configurations.emplace_back();
-            current_material = &material_configurations.back();
+            material_config.emplace_back();
+            current_material = &material_config.back();
             line_stream >> current_material->name;
         } else if (current_material != nullptr) {
             if (token == "map_Kd") {
                 std::filesystem::path texture_path;
                 line_stream >> texture_path;
 
-                auto import_result = m_import_manager->import<Graphics::TextureConfiguration>(path.parent_path() / texture_path);
-                if (!import_result) {
-                    return std::unexpected(std::move(import_result).error());
-                }
-                current_material->albedo_texture_configuration = std::move(import_result).value();
+                auto key = std::format("{}:{}", path.stem().string(), texture_path.stem().string());
+                current_material->albedo_texture_configuration = texture_resolver(key);
             }
         }
     }
 
-    return material_configurations;
+    return material_config;
 }
 
 }

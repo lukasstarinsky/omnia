@@ -6,16 +6,21 @@
 
 #pragma once
 
-#include <LibAsset/Importer.h>
 #include <LibAsset/Export.h>
+#include <LibAsset/Importer.h>
 #include <LibGraphics/ShaderTypes.h>
 
 namespace Asset {
 
-class ASSET_API ShaderImporter final : public Importer {
+class ASSET_API ShaderImporter final {
 public:
-    auto import(std::filesystem::path const& path) -> std::expected<std::any, std::string> override;
-    auto supported_extensions() const -> std::vector<std::string> override;
+    static auto import(std::filesystem::path const& path) -> std::expected<Graphics::ShaderConfiguration, std::string>;
+    static auto supported_extensions() -> std::vector<std::string>;
+};
+
+template<>
+struct ImporterTrait<Graphics::ShaderConfiguration> {
+    using type = ShaderImporter;
 };
 
 }

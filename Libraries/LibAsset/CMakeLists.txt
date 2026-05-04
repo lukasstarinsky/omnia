@@ -1,5 +1,6 @@
 set(SOURCES
-        ImportManager.cpp
+        AssetManager.cpp
+        AssetRegistry.cpp
         ModelImporter.cpp
         ShaderCompiler.cpp
         ShaderImporter.cpp

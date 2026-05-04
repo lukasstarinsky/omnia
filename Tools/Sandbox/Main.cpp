@@ -5,7 +5,7 @@
  */
 
 #include <Common/Types.h>
-#include <LibAsset/ImportManager.h>
+#include <LibAsset/AssetManager.h>
 #include <LibMath/Math.h>
 #include <LibRenderer/Camera.h>
 #include <LibRenderer/Model.h>
@@ -36,7 +36,8 @@ public:
     static auto create() -> std::expected<std::unique_ptr<Sandbox>, std::string>
     {
         std::unique_ptr<Sandbox> sandbox(new Sandbox);
-        sandbox->m_import_manager.register_default_importers();
+
+        sandbox->m_asset_manager.load_loose_assets("Resources/");
 
         UI::Window::Configuration const window_config {
             .title = "Omnia Sandbox",
@@ -109,13 +110,13 @@ public:
 
         {
             RHI::Shader::Configuration shader_config;
-            TRY_ASSIGN(shader_config, sandbox->m_import_manager.import<RHI::Shader::Configuration>("Resources/Shaders/BaseObject.fs.glsl"));
+            TRY_ASSIGN(shader_config, sandbox->m_asset_manager.import<RHI::Shader::Configuration>("BaseObject.fs"));
             TRY_ASSIGN(sandbox->m_fragment_shader, sandbox->m_graphics_device->create_shader(shader_config));
         }
 
         {
             RHI::Shader::Configuration shader_config;
-            TRY_ASSIGN(shader_config, sandbox->m_import_manager.import<RHI::Shader::Configuration>("Resources/Shaders/BaseObject.vs.glsl"));
+            TRY_ASSIGN(shader_config, sandbox->m_asset_manager.import<RHI::Shader::Configuration>("BaseObject.vs"));
             TRY_ASSIGN(sandbox->m_vertex_shader, sandbox->m_graphics_device->create_shader(shader_config));
         }
 
@@ -153,7 +154,7 @@ public:
         TRY_ASSIGN(sandbox->m_material_resource_layout, sandbox->m_graphics_device->create_resource_layout(material_resource_layout_config));
 
         Graphics::ModelConfiguration model_config;
-        TRY_ASSIGN(model_config, sandbox->m_import_manager.import<Graphics::ModelConfiguration>("Resources/Models/sponza/sponza.obj"));
+        TRY_ASSIGN(model_config, sandbox->m_asset_manager.import<Graphics::ModelConfiguration>("sponza"));
         TRY_ASSIGN(sandbox->m_sponza, Renderer::Model::create(model_config, sandbox->m_graphics_device.get(), sandbox->m_material_resource_layout.get()));
 
         RHI::Sampler::Configuration const sampler_config {
@@ -317,7 +318,7 @@ public:
                 movement -= m_camera.right() * (input.is_key_down(UI::Key::A) ? 1.0F : 0.0F);
                 movement += m_camera.right() * (input.is_key_down(UI::Key::D) ? 1.0F : 0.0F);
                 movement.normalize();
-                m_camera.translate(movement * 0.01F);
+                m_camera.translate(movement * 0.075F);
             }
 
             PerFrameData const per_frame_data {
@@ -369,7 +370,7 @@ private:
     std::unique_ptr<RHI::RenderPass> m_main_render_pass;
     std::vector<std::unique_ptr<RHI::RenderTarget>> m_swapchain_render_targets;
     std::unique_ptr<RHI::Pipeline> m_pipeline;
-    Asset::ImportManager m_import_manager;
+    Asset::AssetManager m_asset_manager;
     std::unique_ptr<RHI::Shader> m_vertex_shader;
     std::unique_ptr<RHI::Shader> m_fragment_shader;
     std::unique_ptr<RHI::ResourceLayout> m_shared_resource_layout;

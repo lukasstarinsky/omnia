@@ -14,17 +14,7 @@
 
 namespace Asset {
 
-class Importer {
-    OA_MAKE_NONCOPYABLE(Importer);
-    OA_MAKE_DEFAULT_MOVABLE(Importer);
-
-public:
-    virtual ~Importer() = default;
-
-    virtual auto import(std::filesystem::path const& path) -> std::expected<std::any, std::string> = 0;
-    virtual auto supported_extensions() const -> std::vector<std::string> = 0;
-protected:
-    Importer() = default;
-};
+template<typename T>
+struct ImporterTrait;
 
 }
