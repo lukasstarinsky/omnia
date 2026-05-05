@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <cmath>
+
 #include <Common/Types.h>
 
 namespace Math {
@@ -18,14 +20,133 @@ public:
     T z {};
     T w {};
 
-    Vec4() = default;
+    constexpr Vec4() = default;
 
-    Vec4(T x, T y, T z, T w)
+    constexpr Vec4(T x, T y, T z, T w)
         : x(x)
         , y(y)
         , z(z)
         , w(w)
     {
+    }
+
+    constexpr auto operator+(Vec4<T> const& other) const -> Vec4
+    {
+        return Vec4 {
+            x + other.x,
+            y + other.y,
+            z + other.z,
+            w + other.w
+        };
+    }
+
+    constexpr auto operator-(Vec4<T> const& other) const -> Vec4
+    {
+        return Vec4 {
+            x - other.x,
+            y - other.y,
+            z - other.z,
+            w - other.w
+        };
+    }
+
+    constexpr auto operator-() const -> Vec4
+    {
+        return Vec4 {
+            -x,
+            -y,
+            -z,
+            -w
+        };
+    }
+
+    constexpr auto operator*(T scalar) const -> Vec4
+    {
+        return Vec4 {
+            x * scalar,
+            y * scalar,
+            z * scalar,
+            w * scalar
+        };
+    }
+
+    constexpr auto operator/(T scalar) const -> Vec4
+    {
+        return Vec4 {
+            x / scalar,
+            y / scalar,
+            z / scalar,
+            w / scalar
+        };
+    }
+
+    constexpr auto operator+=(Vec4<T> const& other) -> Vec4&
+    {
+        x += other.x;
+        y += other.y;
+        z += other.z;
+        w += other.w;
+        return *this;
+    }
+
+    constexpr auto operator-=(Vec4<T> const& other) -> Vec4&
+    {
+        x -= other.x;
+        y -= other.y;
+        z -= other.z;
+        w -= other.w;
+        return *this;
+    }
+
+    constexpr auto operator*=(T scalar) -> Vec4&
+    {
+        x *= scalar;
+        y *= scalar;
+        z *= scalar;
+        w *= scalar;
+        return *this;
+    }
+
+    constexpr auto operator/=(T scalar) -> Vec4&
+    {
+        x /= scalar;
+        y /= scalar;
+        z /= scalar;
+        w /= scalar;
+        return *this;
+    }
+
+    constexpr auto length() const -> T
+    {
+        return std::sqrt((x * x) + (y * y) + (z * z) + (w * w));
+    }
+
+    constexpr void normalize()
+    {
+        auto length = this->length();
+
+        if (length != 0) {
+            x /= length;
+            y /= length;
+            z /= length;
+            w /= length;
+        }
+    }
+
+    constexpr auto normalized() const -> Vec4
+    {
+        auto length = this->length();
+
+        if (length != 0) {
+            return Vec4 {
+                x / length,
+                y / length,
+                z / length,
+                w / length
+            };
+        }
+
+        return *this;
     }
 };
 

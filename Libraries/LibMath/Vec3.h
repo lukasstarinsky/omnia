@@ -28,43 +28,52 @@ public:
     {
     }
 
-    constexpr auto operator+(Vec3<T> const& other) const -> Vec3
+    constexpr auto operator+(Vec3<T> const& other) const -> Vec3<T>
     {
-        return Vec3 {
+        return Vec3<T> {
             x + other.x,
             y + other.y,
             z + other.z
         };
     }
 
-    constexpr auto operator-(Vec3<T> const& other) const -> Vec3
+    constexpr auto operator-(Vec3<T> const& other) const -> Vec3<T>
     {
-        return Vec3 {
+        return Vec3<T> {
             x - other.x,
             y - other.y,
             z - other.z
         };
     }
 
-    constexpr auto operator-() const -> Vec3
+    constexpr auto operator-() const -> Vec3<T>
     {
-        return Vec3 {
+        return Vec3<T> {
             -x,
             -y,
             -z
         };
     }
 
-    constexpr auto operator*(T scalar) const -> Vec3
+    constexpr auto operator*(T scalar) const -> Vec3<T>
     {
-        return Vec3 {
+        return Vec3<T> {
             x * scalar,
             y * scalar,
             z * scalar
         };
     }
 
-    constexpr auto operator+=(Vec3<T> const& other) -> Vec3&
+    constexpr auto operator/(T scalar) const -> Vec3<T>
+    {
+        return Vec3<T> {
+            x / scalar,
+            y / scalar,
+            z / scalar
+        };
+    }
+
+    constexpr auto operator+=(Vec3<T> const& other) -> Vec3<T>&
     {
         x += other.x;
         y += other.y;
@@ -72,11 +81,27 @@ public:
         return *this;
     }
 
-    constexpr auto operator-=(Vec3<T> const& other) -> Vec3&
+    constexpr auto operator-=(Vec3<T> const& other) -> Vec3<T>&
     {
         x -= other.x;
         y -= other.y;
         z -= other.z;
+        return *this;
+    }
+
+    constexpr auto operator*=(T scalar) -> Vec3<T>&
+    {
+        x *= scalar;
+        y *= scalar;
+        z *= scalar;
+        return *this;
+    }
+
+    constexpr auto operator/=(T scalar) -> Vec3<T>&
+    {
+        x /= scalar;
+        y /= scalar;
+        z /= scalar;
         return *this;
     }
 
@@ -112,7 +137,7 @@ public:
     }
 };
 
-template <typename T>
+template<typename T>
 constexpr auto cross(Vec3<T> const& a, Vec3<T> const& b) -> Vec3<T>
 {
     return Vec3<T> {
@@ -122,7 +147,7 @@ constexpr auto cross(Vec3<T> const& a, Vec3<T> const& b) -> Vec3<T>
     };
 }
 
-template <typename T>
+template<typename T>
 constexpr auto dot(Vec3<T> const& a, Vec3<T> const& b) -> T
 {
     return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
