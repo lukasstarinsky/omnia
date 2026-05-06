@@ -14,7 +14,7 @@
 
 namespace Asset {
 
-using TextureResolver = std::function<Graphics::TextureConfiguration(std::string const&)>;
+using TextureResolver = std::function<std::optional<Graphics::TextureConfiguration>(std::filesystem::path const&)>;
 
 class ASSET_API TextureImporter final {
 public:

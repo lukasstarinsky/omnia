@@ -17,14 +17,15 @@
 namespace Asset {
 
 class ASSET_API AssetManager final {
+    OA_MAKE_DEFAULT_CONSTRUCTIBLE(AssetManager);
     OA_MAKE_NONCOPYABLE(AssetManager);
     OA_MAKE_NONMOVABLE(AssetManager);
 
 public:
-    AssetManager();
+    AssetManager(std::filesystem::path const& root_directory);
 
-    void load_loose_assets(std::filesystem::path const& root_directory);
-    void load_packed_assets(std::filesystem::path const& packed_file_path);
+    void load_loose_assets();
+    void load_packed_assets();
 
     template<typename T>
     auto import(std::string const& key) const -> std::expected<T, std::string>
@@ -60,7 +61,6 @@ public:
 private:
     AssetRegistry m_asset_registry;
     TextureResolver m_texture_resolver;
-    Graphics::TextureConfiguration m_default_texture_configuration;
 };
 
 }

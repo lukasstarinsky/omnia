@@ -8,32 +8,26 @@
 
 namespace Asset {
 
-AssetManager::AssetManager()
+AssetManager::AssetManager(std::filesystem::path const& root_directory)
+    : m_asset_registry(root_directory)
 {
-    m_default_texture_configuration = {
-        .width = 1,
-        .height = 1,
-        .format = Graphics::TextureFormat::R8G8B8A8_UNORM,
-        .usage = Graphics::TextureUsage::Sampled,
-        .data = std::vector<u8>{ 255, 0, 255, 255 }
-    };
-    m_texture_resolver = [this](std::string const& texture_id) -> Graphics::TextureConfiguration {
-        auto result = import<Graphics::TextureConfiguration>(texture_id);
+    m_texture_resolver = [this](std::filesystem::path const& texture_path) -> std::optional<Graphics::TextureConfiguration> {
+        auto key = m_asset_registry.resolve_key(texture_path);
+        auto result = import<Graphics::TextureConfiguration>(key);
         if (!result.has_value()) {
-            return m_default_texture_configuration;
+            return std::nullopt;
         }
         return result.value();
     };
 }
 
-void AssetManager::load_loose_assets(std::filesystem::path const& root_directory)
+void AssetManager::load_loose_assets()
 {
-    m_asset_registry.scan(root_directory);
+    m_asset_registry.scan();
 }
 
-void AssetManager::load_packed_assets(std::filesystem::path const& packed_file_path)
+void AssetManager::load_packed_assets()
 {
-    (void)packed_file_path;
 }
 
 }

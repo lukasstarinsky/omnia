@@ -11,42 +11,41 @@
 
 namespace Asset {
 
-void AssetRegistry::scan(std::filesystem::path const& root_directory)
+AssetRegistry::AssetRegistry(std::filesystem::path const& root_directory)
+    : m_root_directory(root_directory)
 {
-    auto const model_extensions = ModelImporter::supported_extensions();
-    auto const models_root = root_directory / "Models";
-
-    auto const shader_extensions = ShaderImporter::supported_extensions();
-    auto const shaders_root = root_directory / "Shaders";
-
-    auto const texture_extensions = TextureImporter::supported_extensions();
-    auto const textures_root = root_directory / "Textures";
-
-    scan(models_root, model_extensions);
-    scan(shaders_root, shader_extensions);
-    scan(textures_root, texture_extensions);
 }
 
-void AssetRegistry::scan(std::filesystem::path const& directory, std::vector<std::string> const& extensions)
+void AssetRegistry::scan()
 {
-    for (auto const& entry : std::filesystem::recursive_directory_iterator(directory)) {
+    if (m_root_directory.empty()) {
+        return;
+    }
+
+    auto const model_extensions = ModelImporter::supported_extensions();
+    auto const shader_extensions = ShaderImporter::supported_extensions();
+    auto const texture_extensions = TextureImporter::supported_extensions();
+
+    std::vector<std::string> supported_extensions;
+    supported_extensions.reserve(model_extensions.size() + shader_extensions.size() + texture_extensions.size());
+    supported_extensions.insert(supported_extensions.end(), model_extensions.begin(), model_extensions.end());
+    supported_extensions.insert(supported_extensions.end(), shader_extensions.begin(), shader_extensions.end());
+    supported_extensions.insert(supported_extensions.end(), texture_extensions.begin(), texture_extensions.end());
+
+    for (auto const& entry : std::filesystem::recursive_directory_iterator(m_root_directory)) {
         if (!entry.is_regular_file()) {
             continue;
         }
 
-        if (std::ranges::find(extensions.begin(), extensions.end(), entry.path().extension()) == extensions.end()) {
+        if (std::ranges::find(supported_extensions.begin(), supported_extensions.end(), entry.path().extension()) == supported_extensions.end()) {
             continue;
         }
 
-        auto const& path = entry.path();
-        auto key = path.lexically_relative(directory).replace_extension().string();
-        std::ranges::replace(key, '\\', ':');
-
         AssetEntry asset_entry {
-            .id = std::hash<std::string> {}(key),
-            .key = key,
+            .id = Platform::UUID::generate(),
+            .key = resolve_key(entry.path()),
             .source_type = AssetSourceType::Loose,
-            .source = LooseAssetEntry { .path = path }
+            .source = LooseAssetEntry { .path = entry.path() }
         };
         register_asset(asset_entry);
     }
@@ -54,7 +53,7 @@ void AssetRegistry::scan(std::filesystem::path const& directory, std::vector<std
 
 void AssetRegistry::register_asset(AssetEntry const& entry)
 {
-    if (m_keys_by_id.contains(entry.id)) {
+    if (m_assets_by_key.contains(entry.key)) {
         return;
     }
     m_assets_by_key[entry.key] = entry;
@@ -82,6 +81,14 @@ auto AssetRegistry::resolve(AssetID id) const -> std::expected<AssetEntry, std::
     }
 
     return asset_it->second;
+}
+
+auto AssetRegistry::resolve_key(std::filesystem::path path) const -> std::string
+{
+    path = std::filesystem::weakly_canonical(path);
+    path = std::filesystem::relative(path, m_root_directory);
+    path.replace_extension("");
+    return path.generic_string();
 }
 
 }

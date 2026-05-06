@@ -37,7 +37,7 @@ public:
     {
         std::unique_ptr<Sandbox> sandbox(new Sandbox);
 
-        sandbox->m_asset_manager.load_loose_assets("Resources/");
+        sandbox->m_asset_manager.load_loose_assets();
 
         Platform::Window::Configuration const window_config {
             .title = "Omnia Sandbox",
@@ -110,13 +110,13 @@ public:
 
         {
             RHI::Shader::Configuration shader_config;
-            TRY_ASSIGN(shader_config, sandbox->m_asset_manager.import<RHI::Shader::Configuration>("BaseObject.fs"));
+            TRY_ASSIGN(shader_config, sandbox->m_asset_manager.import<RHI::Shader::Configuration>("Shaders/BaseObject.fs"));
             TRY_ASSIGN(sandbox->m_fragment_shader, sandbox->m_graphics_device->create_shader(shader_config));
         }
 
         {
             RHI::Shader::Configuration shader_config;
-            TRY_ASSIGN(shader_config, sandbox->m_asset_manager.import<RHI::Shader::Configuration>("BaseObject.vs"));
+            TRY_ASSIGN(shader_config, sandbox->m_asset_manager.import<RHI::Shader::Configuration>("Shaders/BaseObject.vs"));
             TRY_ASSIGN(sandbox->m_vertex_shader, sandbox->m_graphics_device->create_shader(shader_config));
         }
 
@@ -154,7 +154,7 @@ public:
         TRY_ASSIGN(sandbox->m_material_resource_layout, sandbox->m_graphics_device->create_resource_layout(material_resource_layout_config));
 
         Graphics::ModelConfiguration model_config;
-        TRY_ASSIGN(model_config, sandbox->m_asset_manager.import<Graphics::ModelConfiguration>("sponza"));
+        TRY_ASSIGN(model_config, sandbox->m_asset_manager.import<Graphics::ModelConfiguration>("Models/sponza/sponza"));
         TRY_ASSIGN(sandbox->m_sponza, Renderer::Model::create(model_config, sandbox->m_graphics_device.get(), sandbox->m_material_resource_layout.get()));
 
         RHI::Sampler::Configuration const sampler_config {
@@ -371,7 +371,7 @@ private:
     std::unique_ptr<RHI::RenderPass> m_main_render_pass;
     std::vector<std::unique_ptr<RHI::RenderTarget>> m_swapchain_render_targets;
     std::unique_ptr<RHI::Pipeline> m_pipeline;
-    Asset::AssetManager m_asset_manager;
+    Asset::AssetManager m_asset_manager = Asset::AssetManager("Resources/");
     std::unique_ptr<RHI::Shader> m_vertex_shader;
     std::unique_ptr<RHI::Shader> m_fragment_shader;
     std::unique_ptr<RHI::ResourceLayout> m_shared_resource_layout;

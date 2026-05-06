@@ -71,14 +71,24 @@ auto ModelImporter::import_obj(std::filesystem::path const& path, TextureResolve
             std::string material_name;
             line_stream >> material_name;
 
-            for (std::size_t i = 0; i < model_config.materials.size(); ++i) {
-                if (model_config.materials[i].name == material_name) {
-                    current_material_index = i;
-                    current_material_changed = true;
-                    break;
-                }
+            auto it = std::ranges::find_if(model_config.materials, [&material_name](auto const& material) {
+                return material.name == material_name;
+            });
+
+            if (it != model_config.materials.end()) {
+                current_material_index = std::distance(model_config.materials.begin(), it);
+            } else {
+                current_material_index = model_config.materials.size();
+                auto& material = model_config.materials.emplace_back();
+                material.name = std::move(material_name);
             }
+            current_material_changed = true;
         } else if (token == "o" || token == "g") {
+            model_config.sub_meshes.emplace_back();
+            current_submesh = &model_config.sub_meshes.back();
+            current_submesh->material_index = current_material_index;
+            current_material_changed = false;
+            vertex_cache.clear();
         } else if (token == "v") {
             auto& position = positions.emplace_back();
             line_stream >> position.x >> position.y >> position.z;
@@ -143,6 +153,10 @@ auto ModelImporter::import_obj(std::filesystem::path const& path, TextureResolve
         }
     }
 
+    std::erase_if(model_config.sub_meshes, [](auto const& submesh) {
+        return submesh.indices.empty();
+    });
+
     return model_config;
 }
 
@@ -169,9 +183,8 @@ auto ModelImporter::import_mtl(std::filesystem::path const& path, TextureResolve
             if (token == "map_Kd") {
                 std::filesystem::path texture_path;
                 line_stream >> texture_path;
-
-                auto key = std::format("{}:{}", path.stem().string(), texture_path.stem().string());
-                current_material->albedo_texture_configuration = texture_resolver(key);
+                texture_path = path.parent_path() / texture_path;
+                current_material->albedo_texture_configuration = texture_resolver(texture_path);
             }
         }
     }

@@ -13,7 +13,7 @@ set(THIRD_PARTY_LIBS unofficial::shaderc::shaderc)
 
 omnia_lib(LibAsset
         SOURCES ${SOURCES}
-        LIBS LibCore
+        LIBS LibCore LibPlatform
         THIRD_PARTY ${THIRD_PARTY_LIBS}
         INCLUDE_DIRS PRIVATE ${Stb_INCLUDE_DIR}
 )
