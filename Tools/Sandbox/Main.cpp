@@ -148,13 +148,18 @@ public:
                     .binding = 0,
                     .type = RHI::ResourceType::Texture,
                     .stage = Graphics::ShaderStage::Fragment
+                },
+                {
+                    .binding = 1,
+                    .type = RHI::ResourceType::UniformBuffer,
+                    .stage = Graphics::ShaderStage::Fragment
                 }
             }
         };
         TRY_ASSIGN(sandbox->m_material_resource_layout, sandbox->m_graphics_device->create_resource_layout(material_resource_layout_config));
 
         Graphics::ModelConfiguration model_config;
-        TRY_ASSIGN(model_config, sandbox->m_asset_manager.import<Graphics::ModelConfiguration>("Models/sponza/sponza"));
+        TRY_ASSIGN(model_config, sandbox->m_asset_manager.import<Graphics::ModelConfiguration>("Models/sponza/Sponza"));
         TRY_ASSIGN(sandbox->m_sponza, Renderer::Model::create(model_config, sandbox->m_graphics_device.get(), sandbox->m_material_resource_layout.get()));
 
         RHI::Sampler::Configuration const sampler_config {

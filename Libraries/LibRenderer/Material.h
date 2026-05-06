@@ -17,13 +17,19 @@ class RENDERER_API Material final {
     OA_MAKE_DEFAULT_MOVABLE(Material);
 
 public:
+    struct UniformBufferData {
+        Math::Vec4f base_color;
+    };
+
     static auto create(Graphics::MaterialConfiguration const& configuration, RHI::Device* device, RHI::ResourceLayout const* resource_layout) -> std::expected<Material, std::string>;
 
     auto resource_set() const -> RHI::ResourceSet const*;
 private:
     Material() = default;
 private:
+    UniformBufferData m_uniform_buffer_data;
     std::unique_ptr<RHI::Texture> m_albedo_texture;
+    std::unique_ptr<RHI::Buffer> m_uniform_buffer;
     std::unique_ptr<RHI::ResourceSet> m_resource_set;
 };
 

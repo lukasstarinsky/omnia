@@ -26,6 +26,7 @@ using Index = u32;
 struct MaterialConfiguration {
     std::string name;
     std::optional<TextureConfiguration> albedo_texture_configuration = std::nullopt;
+    Math::Vec4f base_color { 1.0f, 0.0f, 1.0f, 1.0f };
 };
 
 struct SubMeshConfiguration {
