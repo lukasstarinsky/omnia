@@ -7,6 +7,7 @@ set(SOURCES
         TextureImporter.cpp
 )
 
+find_path(CGLTF_INCLUDE_DIRS cgltf.h)
 find_package(Stb REQUIRED)
 find_package(unofficial-shaderc CONFIG REQUIRED)
 set(THIRD_PARTY_LIBS unofficial::shaderc::shaderc)
@@ -15,5 +16,5 @@ omnia_lib(LibAsset
         SOURCES ${SOURCES}
         LIBS LibCore LibPlatform
         THIRD_PARTY ${THIRD_PARTY_LIBS}
-        INCLUDE_DIRS PRIVATE ${Stb_INCLUDE_DIR}
+        INCLUDE_DIRS PRIVATE ${Stb_INCLUDE_DIR} ${CGLTF_INCLUDE_DIRS}
 )

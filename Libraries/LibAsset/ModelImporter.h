@@ -21,6 +21,7 @@ public:
 private:
     static auto import_obj(std::filesystem::path const& path, TextureResolver const& texture_resolver) -> std::expected<Graphics::ModelConfiguration, std::string>;
     static auto import_mtl(std::filesystem::path const& path, TextureResolver const& texture_resolver) -> std::expected<std::vector<Graphics::MaterialConfiguration>, std::string>;
+    static auto import_gltf(std::filesystem::path const& path, TextureResolver const& texture_resolver) -> std::expected<Graphics::ModelConfiguration, std::string>;
 };
 
 template<>
