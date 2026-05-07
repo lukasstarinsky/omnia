@@ -28,7 +28,7 @@ struct ShaderVariant {
     std::vector<u8> bytecode;
 };
 
-struct ShaderConfiguration {
+struct ShaderData {
     ShaderStage stage;
     std::vector<ShaderVariant> variants;
 };

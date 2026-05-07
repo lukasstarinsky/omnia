@@ -2,10 +2,11 @@ set(SOURCES
         Camera.cpp
         Material.cpp
         Model.cpp
+        ResourceManager.cpp
         SubMesh.cpp
 )
 
 omnia_lib(LibRenderer
         SOURCES ${SOURCES}
-        LIBS LibRHI
+        LIBS LibRHI LibAsset LibPlatform
 )

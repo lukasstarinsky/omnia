@@ -8,9 +8,9 @@
 
 namespace Renderer {
 
-auto SubMesh::create(Graphics::SubMeshConfiguration const& configuration, RHI::Device const* device) -> std::expected<SubMesh, std::string>
+auto SubMesh::create(Configuration const& configuration, RHI::Device const* device) -> std::expected<SubMesh, std::string>
 {
-    RHI::Buffer::Configuration vertex_buffer_config {
+    RHI::Buffer::Configuration const vertex_buffer_config {
         .size = configuration.vertices.size() * sizeof(Graphics::Vertex),
         .usage = RHI::BufferUsage::Vertex,
         .data = configuration.vertices.data()
@@ -20,7 +20,7 @@ auto SubMesh::create(Graphics::SubMeshConfiguration const& configuration, RHI::D
         return std::unexpected(std::move(vertex_buffer).error());
     }
 
-    RHI::Buffer::Configuration index_buffer_config {
+    RHI::Buffer::Configuration const index_buffer_config {
         .size = configuration.indices.size() * sizeof(Graphics::Index),
         .usage = RHI::BufferUsage::Index,
         .data = configuration.indices.data()

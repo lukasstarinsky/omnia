@@ -10,7 +10,7 @@
 
 namespace Asset {
 
-auto ShaderImporter::import(std::filesystem::path const& path) -> std::expected<Graphics::ShaderConfiguration, std::string>
+auto ShaderImporter::import(std::filesystem::path const& path) -> std::expected<ShaderData, std::string>
 {
     if (!std::filesystem::exists(path)) {
         return std::unexpected(std::format("Shader file '{}' does not exist", path.string()));
@@ -33,16 +33,14 @@ auto ShaderImporter::import(std::filesystem::path const& path) -> std::expected<
         return std::unexpected(std::format("Unsupported shader stage '{}'", shader_stage_string));
     }
 
-    Graphics::ShaderConfiguration shader_config;
-    shader_config.stage = shader_stage;
-    shader_config.variants.reserve(3);
+    ShaderData shader_data;
+    shader_data.stage = shader_stage;
 
     auto file_content = File::read_all(path);
     if (!file_content) {
         return std::unexpected(file_content.error());
     }
 
-    // Compile SPIR-V variant
     {
         Graphics::ShaderVariant spirv_variant;
         spirv_variant.format = Graphics::ShaderFormat::SPIRV;
@@ -53,22 +51,10 @@ auto ShaderImporter::import(std::filesystem::path const& path) -> std::expected<
         }
 
         spirv_variant.bytecode = std::move(compiled_spirv.value());
-        shader_config.variants.push_back(spirv_variant);
+        shader_data.variants.push_back(spirv_variant);
     }
 
-    // Compile DXIL variant
-    {
-        Graphics::ShaderVariant dxil_variant;
-        dxil_variant.format = Graphics::ShaderFormat::DXIL;
-    }
-
-    // Compile MetalIR variant
-    {
-        Graphics::ShaderVariant metal_ir_variant;
-        metal_ir_variant.format = Graphics::ShaderFormat::MetalIR;
-    }
-
-    return shader_config;
+    return shader_data;
 }
 
 auto ShaderImporter::supported_extensions() -> std::vector<std::string>

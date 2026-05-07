@@ -14,18 +14,29 @@
 
 namespace Asset {
 
+struct MaterialData {
+    std::string name;
+    std::optional<AssetID> albedo_texture_id = std::nullopt;
+    Math::Vec4f base_color { 1.0f, 0.0f, 1.0f, 1.0f };
+};
+
+struct ModelData {
+    std::vector<Graphics::SubMeshData> sub_meshes;
+    std::vector<MaterialData> materials;
+};
+
 class ASSET_API ModelImporter final {
 public:
-    static auto import(std::filesystem::path const& path, TextureResolver const& texture_resolver) -> std::expected<Graphics::ModelConfiguration, std::string>;
+    static auto import(std::filesystem::path const& path, AssetRegistry const& asset_registry) -> std::expected<ModelData, std::string>;
     static auto supported_extensions() -> std::vector<std::string>;
 private:
-    static auto import_obj(std::filesystem::path const& path, TextureResolver const& texture_resolver) -> std::expected<Graphics::ModelConfiguration, std::string>;
-    static auto import_mtl(std::filesystem::path const& path, TextureResolver const& texture_resolver) -> std::expected<std::vector<Graphics::MaterialConfiguration>, std::string>;
-    static auto import_gltf(std::filesystem::path const& path, TextureResolver const& texture_resolver) -> std::expected<Graphics::ModelConfiguration, std::string>;
+    static auto import_obj(std::filesystem::path const& path, AssetRegistry const& asset_registry) -> std::expected<ModelData, std::string>;
+    static auto import_mtl(std::filesystem::path const& path, AssetRegistry const& asset_registry) -> std::expected<std::vector<MaterialData>, std::string>;
+    static auto import_gltf(std::filesystem::path const& path, AssetRegistry const& asset_registry) -> std::expected<ModelData, std::string>;
 };
 
 template<>
-struct ImporterTrait<Graphics::ModelConfiguration> {
+struct ImporterTrait<ModelData> {
     using type = ModelImporter;
 };
 

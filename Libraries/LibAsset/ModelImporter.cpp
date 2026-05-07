@@ -7,14 +7,13 @@
 #define CGLTF_IMPLEMENTATION
 #include <cgltf.h>
 #include <unordered_map>
-#include <print>
 
 #include <Common/File.h>
 #include <LibAsset/ModelImporter.h>
 
 namespace Asset {
 
-auto ModelImporter::import(std::filesystem::path const& path, TextureResolver const& texture_resolver) -> std::expected<Graphics::ModelConfiguration, std::string>
+auto ModelImporter::import(std::filesystem::path const& path, AssetRegistry const& asset_registry) -> std::expected<ModelData, std::string>
 {
     if (!std::filesystem::exists(path)) {
         return std::unexpected(std::format("Model file '{}' does not exist", path.string()));
@@ -27,9 +26,9 @@ auto ModelImporter::import(std::filesystem::path const& path, TextureResolver co
     }
 
     if (extension == ".obj") {
-        return import_obj(path, texture_resolver);
+        return import_obj(path, asset_registry);
     } else if (extension == ".gltf") {
-        return import_gltf(path, texture_resolver);
+        return import_gltf(path, asset_registry);
     }
 
     return {};
@@ -40,20 +39,20 @@ auto ModelImporter::supported_extensions() -> std::vector<std::string>
     return { ".obj", ".gltf" };
 }
 
-auto ModelImporter::import_obj(std::filesystem::path const& path, TextureResolver const& texture_resolver) -> std::expected<Graphics::ModelConfiguration, std::string>
+auto ModelImporter::import_obj(std::filesystem::path const& path, AssetRegistry const& asset_registry) -> std::expected<ModelData, std::string>
 {
     auto lines = File::read_lines(path);
     if (!lines) {
         return std::unexpected(std::move(lines.error()));
     }
 
-    Graphics::ModelConfiguration model_config;
+    ModelData model_data;
     std::unordered_map<std::string, u32> vertex_cache;
     std::vector<Math::Vec3f> positions;
     std::vector<Math::Vec2f> tex_coords;
     std::vector<Math::Vec3f> normals;
 
-    Graphics::SubMeshConfiguration* current_submesh = nullptr;
+    Graphics::SubMeshData* current_sub_mesh = nullptr;
 
     bool current_material_changed = false;
     u64 current_material_index = 0;
@@ -67,31 +66,31 @@ auto ModelImporter::import_obj(std::filesystem::path const& path, TextureResolve
             std::filesystem::path mtl_path;
             line_stream >> mtl_path;
             mtl_path = path.parent_path() / mtl_path;
-            auto materials_result = import_mtl(mtl_path, texture_resolver);
+            auto materials_result = import_mtl(mtl_path, asset_registry);
             if (!materials_result) {
                 return std::unexpected(std::move(materials_result).error());
             }
-            model_config.materials = std::move(materials_result).value();
+            model_data.materials = std::move(materials_result).value();
         } else if (token == "usemtl") {
             std::string material_name;
             line_stream >> material_name;
 
-            auto it = std::ranges::find_if(model_config.materials, [&material_name](auto const& material) {
+            auto it = std::ranges::find_if(model_data.materials, [&material_name](auto const& material) {
                 return material.name == material_name;
             });
 
-            if (it != model_config.materials.end()) {
-                current_material_index = std::distance(model_config.materials.begin(), it);
+            if (it != model_data.materials.end()) {
+                current_material_index = std::distance(model_data.materials.begin(), it);
             } else {
-                current_material_index = model_config.materials.size();
-                auto& material = model_config.materials.emplace_back();
+                current_material_index = model_data.materials.size();
+                auto& material = model_data.materials.emplace_back();
                 material.name = std::move(material_name);
             }
             current_material_changed = true;
         } else if (token == "o" || token == "g") {
-            model_config.sub_meshes.emplace_back();
-            current_submesh = &model_config.sub_meshes.back();
-            current_submesh->material_index = current_material_index;
+            model_data.sub_meshes.emplace_back();
+            current_sub_mesh = &model_data.sub_meshes.back();
+            current_sub_mesh->material_index = current_material_index;
             current_material_changed = false;
             vertex_cache.clear();
         } else if (token == "v") {
@@ -105,10 +104,10 @@ auto ModelImporter::import_obj(std::filesystem::path const& path, TextureResolve
             auto& normal = normals.emplace_back();
             line_stream >> normal.x >> normal.y >> normal.z;
         } else if (token == "f") {
-            if (current_submesh == nullptr || current_material_changed) {
-                model_config.sub_meshes.emplace_back();
-                current_submesh = &model_config.sub_meshes.back();
-                current_submesh->material_index = current_material_index;
+            if (current_sub_mesh == nullptr || current_material_changed) {
+                model_data.sub_meshes.emplace_back();
+                current_sub_mesh = &model_data.sub_meshes.back();
+                current_sub_mesh->material_index = current_material_index;
                 current_material_changed = false;
                 vertex_cache.clear();
             }
@@ -124,7 +123,7 @@ auto ModelImporter::import_obj(std::filesystem::path const& path, TextureResolve
                     auto& vertex_token = face_tokens[j];
 
                     if (auto it = vertex_cache.find(vertex_token); it != vertex_cache.end()) {
-                        current_submesh->indices.push_back(it->second);
+                        current_sub_mesh->indices.push_back(it->second);
                         continue;
                     }
 
@@ -149,31 +148,31 @@ auto ModelImporter::import_obj(std::filesystem::path const& path, TextureResolve
                         ++index_count;
                     }
 
-                    auto index = static_cast<Graphics::Index>(current_submesh->vertices.size());
-                    current_submesh->vertices.push_back(vertex);
-                    current_submesh->indices.push_back(index);
+                    auto index = static_cast<Graphics::Index>(current_sub_mesh->vertices.size());
+                    current_sub_mesh->vertices.push_back(vertex);
+                    current_sub_mesh->indices.push_back(index);
                     vertex_cache[vertex_token] = index;
                 }
             }
         }
     }
 
-    std::erase_if(model_config.sub_meshes, [](auto const& submesh) {
+    std::erase_if(model_data.sub_meshes, [](auto const& submesh) {
         return submesh.indices.empty();
     });
 
-    return model_config;
+    return model_data;
 }
 
-auto ModelImporter::import_mtl(std::filesystem::path const& path, TextureResolver const& texture_resolver) -> std::expected<std::vector<Graphics::MaterialConfiguration>, std::string>
+auto ModelImporter::import_mtl(std::filesystem::path const& path, AssetRegistry const& asset_registry) -> std::expected<std::vector<MaterialData>, std::string>
 {
     auto lines = File::read_lines(path);
     if (!lines) {
         return std::unexpected(std::move(lines).error());
     }
 
-    std::vector<Graphics::MaterialConfiguration> material_config;
-    Graphics::MaterialConfiguration* current_material = nullptr;
+    std::vector<MaterialData> material_data;
+    MaterialData* current_material = nullptr;
 
     for (auto const& line : lines.value()) {
         std::istringstream line_stream(line);
@@ -181,23 +180,24 @@ auto ModelImporter::import_mtl(std::filesystem::path const& path, TextureResolve
         line_stream >> token;
 
         if (token == "newmtl") {
-            material_config.emplace_back();
-            current_material = &material_config.back();
+            material_data.emplace_back();
+            current_material = &material_data.back();
             line_stream >> current_material->name;
         } else if (current_material != nullptr) {
             if (token == "map_Kd") {
                 std::filesystem::path texture_path;
                 line_stream >> texture_path;
                 texture_path = path.parent_path() / texture_path;
-                current_material->albedo_texture_configuration = texture_resolver(texture_path);
+                auto key = asset_registry.resolve_key(texture_path);
+                current_material->albedo_texture_id = asset_registry.key_to_id(key);
             }
         }
     }
 
-    return material_config;
+    return material_data;
 }
 
-auto ModelImporter::import_gltf(std::filesystem::path const& path, Asset::TextureResolver const& texture_resolver) -> std::expected<Graphics::ModelConfiguration, std::string>
+auto ModelImporter::import_gltf(std::filesystem::path const& path, AssetRegistry const& asset_registry) -> std::expected<ModelData, std::string>
 {
     auto file_data = File::read_all(path);
     if (!file_data) {
@@ -218,11 +218,11 @@ auto ModelImporter::import_gltf(std::filesystem::path const& path, Asset::Textur
         return std::unexpected(std::format("Invalid glTF file '{}'", path.string()));
     }
 
-    Graphics::ModelConfiguration model_config;
+    ModelData model_data;
 
     for (cgltf_size i = 0; i < data->materials_count; ++i) {
         auto const& gltf_material = data->materials[i];
-        auto& material = model_config.materials.emplace_back();
+        auto& material = model_data.materials.emplace_back();
         material.name = gltf_material.name ? gltf_material.name : std::format("Material_{}", i);
 
         if (gltf_material.has_pbr_metallic_roughness) {
@@ -230,11 +230,9 @@ auto ModelImporter::import_gltf(std::filesystem::path const& path, Asset::Textur
 
             if (pbr.base_color_texture.texture != nullptr) {
                 auto const* img = pbr.base_color_texture.texture->image;
-
-                if (img && img->uri) {
-                    auto const texture_path = path.parent_path() / img->uri;
-                    material.albedo_texture_configuration = texture_resolver(texture_path);
-                }
+                auto const texture_path = path.parent_path() / img->uri;
+                auto key = asset_registry.resolve_key(texture_path);
+                material.albedo_texture_id = asset_registry.key_to_id(key);
                 material.base_color = Math::Vec4f(pbr.base_color_factor[0], pbr.base_color_factor[1], pbr.base_color_factor[2], pbr.base_color_factor[3]);
             }
         }
@@ -262,8 +260,8 @@ auto ModelImporter::import_gltf(std::filesystem::path const& path, Asset::Textur
                 continue;
             }
 
-            auto& submesh = model_config.sub_meshes.emplace_back();
-            submesh.material_index = get_material_index(primitive.material);
+            auto& sub_mesh = model_data.sub_meshes.emplace_back();
+            sub_mesh.material_index = get_material_index(primitive.material);
 
             cgltf_accessor const* position_accessor = nullptr;
             cgltf_accessor const* normal_accessor = nullptr;
@@ -272,21 +270,21 @@ auto ModelImporter::import_gltf(std::filesystem::path const& path, Asset::Textur
             for (cgltf_size k = 0; k < primitive.attributes_count; ++k) {
                 auto const& attribute = primitive.attributes[k];
                 switch (attribute.type) {
-                    case cgltf_attribute_type_position:
-                        position_accessor = attribute.data;
-                        break;
-                    case cgltf_attribute_type_normal:
-                        normal_accessor = attribute.data;
-                        break;
-                    case cgltf_attribute_type_texcoord:
-                        tex_coord_accessor = attribute.data;
-                        break;
-                    case cgltf_attribute_type_joints:
-                        break;
-                    case cgltf_attribute_type_weights:
-                        break;
-                    default:
-                        break;
+                case cgltf_attribute_type_position:
+                    position_accessor = attribute.data;
+                    break;
+                case cgltf_attribute_type_normal:
+                    normal_accessor = attribute.data;
+                    break;
+                case cgltf_attribute_type_texcoord:
+                    tex_coord_accessor = attribute.data;
+                    break;
+                case cgltf_attribute_type_joints:
+                    break;
+                case cgltf_attribute_type_weights:
+                    break;
+                default:
+                    break;
                 }
             }
 
@@ -295,7 +293,7 @@ auto ModelImporter::import_gltf(std::filesystem::path const& path, Asset::Textur
             }
 
             auto vertex_count = position_accessor->count;
-            submesh.vertices.reserve(vertex_count);
+            sub_mesh.vertices.reserve(vertex_count);
 
             for (cgltf_size v = 0; v < vertex_count; ++v) {
                 Graphics::Vertex vertex {};
@@ -312,33 +310,33 @@ auto ModelImporter::import_gltf(std::filesystem::path const& path, Asset::Textur
                     cgltf_accessor_read_float(tex_coord_accessor, v, &vertex.tex_coord.x, 2);
                 }
 
-                submesh.vertices.push_back(vertex);
+                sub_mesh.vertices.push_back(vertex);
             }
 
             if (primitive.indices != nullptr) {
                 auto index_count = primitive.indices->count;
-                submesh.indices.reserve(index_count);
+                sub_mesh.indices.reserve(index_count);
 
                 for (cgltf_size idx = 0; idx < index_count; ++idx) {
                     u32 index_value = 0;
                     cgltf_accessor_read_uint(primitive.indices, idx, &index_value, 1);
-                    submesh.indices.push_back(index_value);
+                    sub_mesh.indices.push_back(index_value);
                 }
             } else {
-                submesh.indices.reserve(vertex_count);
+                sub_mesh.indices.reserve(vertex_count);
                 for (u32 idx = 0; idx < vertex_count; ++idx) {
-                    submesh.indices.push_back(idx);
+                    sub_mesh.indices.push_back(idx);
                 }
             }
         }
     }
 
-    std::erase_if(model_config.sub_meshes, [](auto const& submesh) {
+    std::erase_if(model_data.sub_meshes, [](auto const& submesh) {
         return submesh.indices.empty();
     });
 
     cgltf_free(data);
-    return model_config;
+    return model_data;
 }
 
 }

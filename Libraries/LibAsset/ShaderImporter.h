@@ -12,14 +12,16 @@
 
 namespace Asset {
 
+using ShaderData = Graphics::ShaderData;
+
 class ASSET_API ShaderImporter final {
 public:
-    static auto import(std::filesystem::path const& path) -> std::expected<Graphics::ShaderConfiguration, std::string>;
+    static auto import(std::filesystem::path const& path) -> std::expected<ShaderData, std::string>;
     static auto supported_extensions() -> std::vector<std::string>;
 };
 
 template<>
-struct ImporterTrait<Graphics::ShaderConfiguration> {
+struct ImporterTrait<ShaderData> {
     using type = ShaderImporter;
 };
 

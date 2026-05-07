@@ -18,9 +18,12 @@ namespace Renderer {
 class RENDERER_API SubMesh final {
     OA_MAKE_NONCOPYABLE(SubMesh);
     OA_MAKE_DEFAULT_MOVABLE(SubMesh);
+    OA_MAKE_DEFAULT_DESTRUCTIBLE(SubMesh);
 
 public:
-    static auto create(Graphics::SubMeshConfiguration const& configuration, RHI::Device const* device) -> std::expected<SubMesh, std::string>;
+    using Configuration = Graphics::SubMeshData;
+
+    static auto create(Configuration const& configuration, RHI::Device const* device) -> std::expected<SubMesh, std::string>;
 
     auto vertex_buffer() const -> RHI::Buffer const*;
     auto index_buffer() const -> RHI::Buffer const*;
@@ -31,8 +34,8 @@ private:
 private:
     std::unique_ptr<RHI::Buffer> m_vertex_buffer;
     std::unique_ptr<RHI::Buffer> m_index_buffer;
-    u64 m_index_count;
-    u64 m_material_index;
+    u64 m_index_count {};
+    u64 m_material_index {};
 };
 
 }

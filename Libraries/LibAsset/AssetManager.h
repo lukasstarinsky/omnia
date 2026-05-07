@@ -24,6 +24,7 @@ class ASSET_API AssetManager final {
 public:
     AssetManager(std::filesystem::path const& root_directory);
 
+    auto registry() const -> AssetRegistry const&;
     void load_loose_assets();
     void load_packed_assets();
 
@@ -52,15 +53,14 @@ public:
         }
 
         auto const& asset_source = std::get<LooseAssetEntry>(asset_entry.source);
-        if constexpr (std::same_as<T, Graphics::ModelConfiguration>) {
-            return ModelImporter::import(asset_source.path, m_texture_resolver);
+        if constexpr (std::same_as<T, ModelData>) {
+            return ModelImporter::import(asset_source.path, m_asset_registry);
         } else {
             return ImporterTrait<T>::type::import(asset_source.path);
         }
     }
 private:
     AssetRegistry m_asset_registry;
-    TextureResolver m_texture_resolver;
 };
 
 }

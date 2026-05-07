@@ -138,10 +138,10 @@ auto VkTexture::image_view() const -> VkImageView
     return m_image_view;
 }
 
-auto to_graphics(VkFormat format) -> Graphics::TextureFormat
+auto to_graphics(VkFormat format) -> TextureFormat
 {
     switch (format) {
-        using enum Graphics::TextureFormat;
+        using enum TextureFormat;
     case VK_FORMAT_B8G8R8A8_SRGB:
         return B8G8R8A8_SRGB;
     case VK_FORMAT_R8G8B8A8_SRGB:
@@ -157,10 +157,10 @@ auto to_graphics(VkFormat format) -> Graphics::TextureFormat
     }
 }
 
-auto to_vk_aspect(Graphics::TextureFormat format) -> VkImageAspectFlags
+auto to_vk_aspect(TextureFormat format) -> VkImageAspectFlags
 {
     switch (format) {
-        using enum Graphics::TextureFormat;
+        using enum TextureFormat;
     case B8G8R8A8_SRGB:
     case R8G8B8A8_SRGB:
     case B8G8R8A8_UNORM:
@@ -173,10 +173,10 @@ auto to_vk_aspect(Graphics::TextureFormat format) -> VkImageAspectFlags
     }
 }
 
-auto to_vk(Graphics::TextureUsage usage) -> VkImageUsageFlags
+auto to_vk(TextureUsage usage) -> VkImageUsageFlags
 {
     switch (usage) {
-        using enum Graphics::TextureUsage;
+        using enum TextureUsage;
     case Sampled:
         return VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     case RenderTarget:
@@ -188,10 +188,10 @@ auto to_vk(Graphics::TextureUsage usage) -> VkImageUsageFlags
     }
 }
 
-auto to_vk(Graphics::TextureFormat format) -> VkFormat
+auto to_vk(TextureFormat format) -> VkFormat
 {
     switch (format) {
-        using enum Graphics::TextureFormat;
+        using enum TextureFormat;
     case B8G8R8A8_SRGB:
         return VK_FORMAT_B8G8R8A8_SRGB;
     case R8G8B8A8_SRGB:

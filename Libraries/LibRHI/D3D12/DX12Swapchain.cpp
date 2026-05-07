@@ -29,9 +29,9 @@ auto DX12Swapchain::height() const -> u32
     return 0;
 }
 
-auto DX12Swapchain::format() const -> Graphics::TextureFormat
+auto DX12Swapchain::format() const -> TextureFormat
 {
-    return Graphics::TextureFormat::Unknown;
+    return TextureFormat::Unknown;
 }
 
 auto DX12Swapchain::textures() const -> std::vector<std::unique_ptr<Texture>> const&

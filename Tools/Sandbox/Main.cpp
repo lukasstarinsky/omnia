@@ -7,6 +7,7 @@
 #include <Common/Types.h>
 #include <LibAsset/AssetManager.h>
 #include <LibMath/Math.h>
+#include <LibRenderer/ResourceManager.h>
 #include <LibRenderer/Camera.h>
 #include <LibRenderer/Model.h>
 #include <LibRHI/Device.h>
@@ -60,6 +61,8 @@ public:
         };
         TRY_ASSIGN(sandbox->m_swapchain, sandbox->m_graphics_device->create_swapchain(swapchain_config));
 
+        TRY_ASSIGN(sandbox->m_resource_manager, Renderer::ResourceManager::create(&sandbox->m_asset_manager, sandbox->m_graphics_device.get()));
+
         Renderer::Camera::Configuration const camera_config {
             .projection_type = Renderer::ProjectionType::Perspective,
             .position = { 0.0F, 0.0F, 0.0F },
@@ -82,7 +85,7 @@ public:
                 }
             },
             .depth_attachment = RHI::RenderPass::Attachment {
-                .format = Graphics::TextureFormat::D32_SFLOAT,
+                .format = RHI::TextureFormat::D32_SFLOAT,
                 .load_op = RHI::LoadOp::Clear,
                 .store_op = RHI::StoreOp::DontCare,
                 .clear_color = { 1.0F, 0.0F, 0.0F, 1.0F }
@@ -93,8 +96,8 @@ public:
         RHI::Texture::Configuration const depth_texture_config {
             .width = swapchain_config.width,
             .height = swapchain_config.height,
-            .format = Graphics::TextureFormat::D32_SFLOAT,
-            .usage = Graphics::TextureUsage::DepthStencil,
+            .format = RHI::TextureFormat::D32_SFLOAT,
+            .usage = RHI::TextureUsage::DepthStencil,
             .data = {}
         };
         TRY_ASSIGN(sandbox->m_depth_texture, sandbox->m_graphics_device->create_texture(depth_texture_config));
@@ -108,17 +111,9 @@ public:
             sandbox->m_swapchain_render_targets.push_back(std::move(render_target.value()));
         }
 
-        {
-            RHI::Shader::Configuration shader_config;
-            TRY_ASSIGN(shader_config, sandbox->m_asset_manager.import<RHI::Shader::Configuration>("Shaders/BaseObject.fs"));
-            TRY_ASSIGN(sandbox->m_fragment_shader, sandbox->m_graphics_device->create_shader(shader_config));
-        }
-
-        {
-            RHI::Shader::Configuration shader_config;
-            TRY_ASSIGN(shader_config, sandbox->m_asset_manager.import<RHI::Shader::Configuration>("Shaders/BaseObject.vs"));
-            TRY_ASSIGN(sandbox->m_vertex_shader, sandbox->m_graphics_device->create_shader(shader_config));
-        }
+        TRY_ASSIGN(sandbox->m_fragment_shader, sandbox->m_resource_manager->load_shader("Shaders/BaseObject.fs"));
+        TRY_ASSIGN(sandbox->m_vertex_shader, sandbox->m_resource_manager->load_shader("Shaders/BaseObject.vs"));
+        TRY_ASSIGN(sandbox->m_sponza, sandbox->m_resource_manager->load_model("Models/sponza/Sponza"));
 
         RHI::Buffer::Configuration const uniform_buffer_config {
             .size = sizeof(PerFrameData),
@@ -141,26 +136,6 @@ public:
             }
         };
         TRY_ASSIGN(sandbox->m_shared_resource_layout, sandbox->m_graphics_device->create_resource_layout(per_frame_resource_layout_config));
-
-        RHI::ResourceLayout::Configuration const material_resource_layout_config {
-            .bindings = {
-                {
-                    .binding = 0,
-                    .type = RHI::ResourceType::Texture,
-                    .stage = Graphics::ShaderStage::Fragment
-                },
-                {
-                    .binding = 1,
-                    .type = RHI::ResourceType::UniformBuffer,
-                    .stage = Graphics::ShaderStage::Fragment
-                }
-            }
-        };
-        TRY_ASSIGN(sandbox->m_material_resource_layout, sandbox->m_graphics_device->create_resource_layout(material_resource_layout_config));
-
-        Graphics::ModelConfiguration model_config;
-        TRY_ASSIGN(model_config, sandbox->m_asset_manager.import<Graphics::ModelConfiguration>("Models/sponza/Sponza"));
-        TRY_ASSIGN(sandbox->m_sponza, Renderer::Model::create(model_config, sandbox->m_graphics_device.get(), sandbox->m_material_resource_layout.get()));
 
         RHI::Sampler::Configuration const sampler_config {
             .mag_filter = RHI::Filter::Linear,
@@ -222,7 +197,7 @@ public:
             },
             .resource_layouts = {
                 sandbox->m_shared_resource_layout.get(),
-                sandbox->m_material_resource_layout.get()
+                sandbox->m_resource_manager->resource_layout()
             },
             .push_constants = {
                 sandbox->m_per_object_push_constant
@@ -269,8 +244,8 @@ public:
         RHI::Texture::Configuration const depth_texture_config {
             .width = new_swapchain_config.width,
             .height = new_swapchain_config.height,
-            .format = Graphics::TextureFormat::D32_SFLOAT,
-            .usage = Graphics::TextureUsage::DepthStencil,
+            .format = RHI::TextureFormat::D32_SFLOAT,
+            .usage = RHI::TextureUsage::DepthStencil,
             .data = {}
         };
         auto depth_texture_result = m_graphics_device->create_texture(depth_texture_config);
@@ -380,13 +355,13 @@ private:
     std::unique_ptr<RHI::Shader> m_vertex_shader;
     std::unique_ptr<RHI::Shader> m_fragment_shader;
     std::unique_ptr<RHI::ResourceLayout> m_shared_resource_layout;
-    std::unique_ptr<RHI::ResourceLayout> m_material_resource_layout;
     std::unique_ptr<RHI::ResourceSet> m_resource_set;
     std::unique_ptr<RHI::Texture> m_depth_texture;
     std::unique_ptr<RHI::Sampler> m_sampler;
     std::unique_ptr<Renderer::Model> m_sponza;
     std::unique_ptr<RHI::Buffer> m_per_frame;
     RHI::Pipeline::PushConstant m_per_object_push_constant {};
+    std::unique_ptr<Renderer::ResourceManager> m_resource_manager;
     bool m_was_window_resized = false;
     Renderer::Camera m_camera {};
 };

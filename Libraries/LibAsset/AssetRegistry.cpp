@@ -37,11 +37,11 @@ void AssetRegistry::scan()
             continue;
         }
 
-        if (std::ranges::find(supported_extensions.begin(), supported_extensions.end(), entry.path().extension()) == supported_extensions.end()) {
+        if (std::ranges::find(supported_extensions.begin(), supported_extensions.end(), entry.path().extension().string()) == supported_extensions.end()) {
             continue;
         }
 
-        AssetEntry asset_entry {
+        AssetEntry const asset_entry {
             .id = Platform::UUID::generate(),
             .key = resolve_key(entry.path()),
             .source_type = AssetSourceType::Loose,

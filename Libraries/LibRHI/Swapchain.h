@@ -41,7 +41,7 @@ public:
     virtual auto width() const -> u32 = 0;
     virtual auto height() const -> u32 = 0;
 
-    virtual auto format() const -> Graphics::TextureFormat = 0;
+    virtual auto format() const -> TextureFormat = 0;
     virtual auto textures() const -> std::vector<std::unique_ptr<Texture>> const& = 0;
 
     virtual auto is_dirty() const -> bool = 0;

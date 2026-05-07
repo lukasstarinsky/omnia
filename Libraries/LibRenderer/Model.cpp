@@ -9,36 +9,40 @@
 
 namespace Renderer {
 
-auto Model::create(Graphics::ModelConfiguration const& configuration, RHI::Device* device, RHI::ResourceLayout const* resource_layout) -> std::expected<std::unique_ptr<Model>, std::string>
+auto Model::create(Configuration const& configuration, RHI::Device* device) -> std::expected<std::unique_ptr<Model>, std::string>
 {
+    assert(device != nullptr);
+
     std::unique_ptr<Model> model(new Model);
     return model->create_sub_meshes(configuration.sub_meshes, device)
         .and_then([&]() {
-            return model->create_materials(configuration.materials, device, resource_layout);
+            return model->create_materials(configuration.materials, device);
         })
         .transform([&]() {
             return std::move(model);
         });
 }
 
-auto Model::create_sub_meshes(std::vector<Graphics::SubMeshConfiguration> const& configurations, RHI::Device const* device) -> std::expected<void, std::string>
+auto Model::create_sub_meshes(std::vector<SubMesh::Configuration> const& configurations, RHI::Device const* device) -> std::expected<void, std::string>
 {
+    m_sub_meshes.reserve(configurations.size());
     for (auto const& sub_mesh_configuration : configurations) {
         auto sub_mesh = SubMesh::create(sub_mesh_configuration, device);
         if (!sub_mesh.has_value()) {
-            return std::unexpected(sub_mesh.error());
+            return std::unexpected(std::move(sub_mesh).error());
         }
         m_sub_meshes.push_back(std::move(sub_mesh).value());
     }
     return {};
 }
 
-auto Model::create_materials(std::vector<Graphics::MaterialConfiguration> const& configurations, RHI::Device* device, RHI::ResourceLayout const* resource_layout) -> std::expected<void, std::string>
+auto Model::create_materials(std::vector<Material::Configuration> const& configurations, RHI::Device* device) -> std::expected<void, std::string>
 {
+    m_materials.reserve(configurations.size());
     for (auto const& material_configuration : configurations) {
-        auto material = Material::create(material_configuration, device, resource_layout);
+        auto material = Material::create(material_configuration, device);
         if (!material.has_value()) {
-            return std::unexpected(material.error());
+            return std::unexpected(std::move(material).error());
         }
         m_materials.push_back(std::move(material).value());
     }

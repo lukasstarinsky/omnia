@@ -8,37 +8,18 @@
 
 namespace Renderer {
 
-auto Material::create(Graphics::MaterialConfiguration const& configuration, RHI::Device* device, RHI::ResourceLayout const* resource_layout) -> std::expected<Material, std::string>
+auto Material::create(Configuration const& configuration, RHI::Device* device) -> std::expected<Material, std::string>
 {
+    assert(configuration.resource_layout != nullptr);
+    assert(configuration.albedo_texture != nullptr);
+
     Material material;
-    material.m_uniform_buffer_data = {
+    material.m_base_data = {
         .base_color = configuration.base_color
     };
 
-    if (!configuration.albedo_texture_configuration.has_value()) {
-        RHI::Texture::Configuration default_texture_configuration {
-            .width = 1,
-            .height = 1,
-            .format = Graphics::TextureFormat::R8G8B8A8_UNORM,
-            .data = {}
-        };
-        default_texture_configuration.data.resize(4);
-        std::memset(default_texture_configuration.data.data(), 255, 4);
-        auto default_texture_result = device->create_texture(default_texture_configuration);
-        if (!default_texture_result.has_value()) {
-            return std::unexpected(std::move(default_texture_result).error());
-        }
-        material.m_albedo_texture = std::move(default_texture_result).value();
-    } else {
-        auto albedo_texture_result = device->create_texture(configuration.albedo_texture_configuration.value());
-        if (!albedo_texture_result.has_value()) {
-            return std::unexpected(std::move(albedo_texture_result).error());
-        }
-        material.m_albedo_texture = std::move(albedo_texture_result).value();
-    }
-
     auto resource_set_configuration = RHI::ResourceSet::Configuration {
-        .layout = resource_layout,
+        .layout = configuration.resource_layout,
     };
     auto resource_set_result = device->create_resource_set(resource_set_configuration);
     if (!resource_set_result.has_value()) {
@@ -47,9 +28,9 @@ auto Material::create(Graphics::MaterialConfiguration const& configuration, RHI:
     material.m_resource_set = std::move(resource_set_result).value();
 
     auto uniform_buffer_configuration = RHI::Buffer::Configuration {
-        .size = sizeof(UniformBufferData),
+        .size = sizeof(BaseData),
         .usage = RHI::BufferUsage::Uniform,
-        .data = &material.m_uniform_buffer_data
+        .data = &material.m_base_data
     };
     auto uniform_buffer_result = device->create_buffer(uniform_buffer_configuration);
     if (!uniform_buffer_result.has_value()) {
@@ -57,7 +38,7 @@ auto Material::create(Graphics::MaterialConfiguration const& configuration, RHI:
     }
     material.m_uniform_buffer = std::move(uniform_buffer_result).value();
 
-    material.m_resource_set->set_texture(0, material.m_albedo_texture.get());
+    material.m_resource_set->set_texture(0, configuration.albedo_texture);
     material.m_resource_set->set_uniform_buffer(1, material.m_uniform_buffer.get());
 
     return material;
