@@ -17,34 +17,34 @@ auto ResourceManager::create(Asset::AssetManager const* asset_manager, RHI::Devi
     resource_manager->m_asset_manager = asset_manager;
     resource_manager->m_device = device;
 
-    RHI::Texture::Configuration const default_texture_config {
-        .width = 1,
-        .height = 1,
-        .format = RHI::TextureFormat::R8G8B8A8_SRGB,
-        .usage = RHI::TextureUsage::Sampled,
-        .data = { 255, 255, 255, 255 }
-    };
-    auto default_texture_create_result = device->create_texture(default_texture_config);
-    if (!default_texture_create_result.has_value()) {
-        return std::unexpected(std::move(default_texture_create_result).error());
-    }
-    resource_manager->m_texture_cache[resource_manager->m_default_texture_id] = std::move(default_texture_create_result).value();
-
-    RHI::ResourceLayout::Configuration const material_resource_layout_config {
+    RHI::ResourceLayout::Configuration material_resource_layout_config {
         .bindings = {
-            { .binding = 0,
-                .type = RHI::ResourceType::Texture,
-                .stage = Graphics::ShaderStage::Fragment },
-            { .binding = 1,
+            {
+                .binding = 0,
                 .type = RHI::ResourceType::UniformBuffer,
-                .stage = Graphics::ShaderStage::Fragment } }
+                .stage = Graphics::ShaderStage::Fragment
+            },
+        }
     };
+
+    u32 const texture_count = 5U;
+    for (u32 i = 1; i <= texture_count; i++) {
+        material_resource_layout_config.bindings.push_back({
+            .binding = i,
+            .type = RHI::ResourceType::Texture,
+            .stage = Graphics::ShaderStage::Fragment
+        });
+    }
+
     auto material_resource_layout_result = device->create_resource_layout(material_resource_layout_config);
     if (!material_resource_layout_result.has_value()) {
         return std::unexpected(std::move(material_resource_layout_result).error());
     }
     resource_manager->m_material_resource_layout = std::move(material_resource_layout_result).value();
 
+    if (auto result = resource_manager->initialize_default_resources(); !result.has_value()) {
+        return std::unexpected(std::move(result).error());
+    }
     return resource_manager;
 }
 
@@ -69,6 +69,19 @@ auto ResourceManager::load_model(Asset::AssetID asset_id) -> std::expected<std::
         return std::unexpected(std::move(model_data).error());
     }
 
+    auto resolve_texture = [&](std::optional<Asset::AssetID> const& texture_id, Asset::AssetID default_id) -> RHI::Texture const* {
+        assert(m_texture_cache.contains(default_id));
+
+        if (!texture_id.has_value()) {
+            return m_texture_cache[default_id].get();
+        }
+        auto const texture_result = load_texture(texture_id.value());
+        if (!texture_result) {
+            return m_texture_cache[default_id].get();
+        }
+        return texture_result.value();
+    };
+
     Model::Configuration model_config {
         .sub_meshes = model_data->sub_meshes,
         .materials = {}
@@ -77,16 +90,14 @@ auto ResourceManager::load_model(Asset::AssetID asset_id) -> std::expected<std::
     for (auto const& material_data : model_data->materials) {
         Material::Configuration material_config {
             .name = material_data.name,
-            .albedo_texture = m_texture_cache[m_default_texture_id].get(),
-            .resource_layout = m_material_resource_layout.get()
+            .albedo_texture = resolve_texture(material_data.albedo_texture_id, DefaultResource::albedo_texture_id),
+            .metallic_roughness_texture = resolve_texture(material_data.metallic_roughness_texture_id, DefaultResource::metallic_roughness_texture_id),
+            .normal_texture = resolve_texture(material_data.normal_texture_id, DefaultResource::normal_texture_id),
+            .occlusion_texture = resolve_texture(material_data.occlusion_texture_id, DefaultResource::occlusion_texture_id),
+            .emissive_texture = resolve_texture(material_data.emissive_texture_id, DefaultResource::emissive_texture_id),
+            .resource_layout = m_material_resource_layout.get(),
+            .parameters = material_data.parameters
         };
-        if (material_data.albedo_texture_id.has_value()) {
-            auto const albedo_texture_result = load_texture(material_data.albedo_texture_id.value());
-            if (!albedo_texture_result) {
-                return std::unexpected(std::move(albedo_texture_result).error());
-            }
-            material_config.albedo_texture = albedo_texture_result.value();
-        }
         model_config.materials.push_back(std::move(material_config));
     }
 
@@ -127,7 +138,7 @@ auto ResourceManager::load_texture(Asset::AssetID asset_id) -> std::expected<RHI
         return it->second.get();
     }
 
-    auto const texture_data = m_asset_manager->import <Asset::TextureData>(asset_id);
+    auto const texture_data = m_asset_manager->import<Asset::TextureData>(asset_id);
     if (!texture_data) {
         return std::unexpected(std::move(texture_data).error());
     }
@@ -147,6 +158,67 @@ auto ResourceManager::load_texture(Asset::AssetID asset_id) -> std::expected<RHI
 
     m_texture_cache[asset_id] = std::move(texture_create_result).value();
     return m_texture_cache[asset_id].get();
+}
+
+auto ResourceManager::initialize_default_resources() -> std::expected<void, std::string>
+{
+    RHI::Texture::Configuration const default_texture_config {
+        .width = 1,
+        .height = 1,
+        .format = RHI::TextureFormat::R8G8B8A8_SRGB,
+        .usage = RHI::TextureUsage::Sampled,
+        .data = { 255, 255, 255, 255 }
+    };
+    RHI::Texture::Configuration const default_normal_texture_config {
+        .width = 1,
+        .height = 1,
+        .format = RHI::TextureFormat::R8G8B8A8_UNORM,
+        .usage = RHI::TextureUsage::Sampled,
+        .data = { 128, 128, 255, 255 }
+    };
+    RHI::Texture::Configuration const default_metallic_roughness_texture_config {
+        .width = 1,
+        .height = 1,
+        .format = RHI::TextureFormat::R8G8B8A8_UNORM,
+        .usage = RHI::TextureUsage::Sampled,
+        .data = { 255, 255, 0, 255 }
+    };
+    RHI::Texture::Configuration const default_occlusion_texture_config {
+        .width = 1,
+        .height = 1,
+        .format = RHI::TextureFormat::R8G8B8A8_UNORM,
+        .usage = RHI::TextureUsage::Sampled,
+        .data = { 255, 255, 255, 255 }
+    };
+    RHI::Texture::Configuration const default_emissive_texture_config {
+        .width = 1,
+        .height = 1,
+        .format = RHI::TextureFormat::R8G8B8A8_SRGB,
+        .usage = RHI::TextureUsage::Sampled,
+        .data = { 0, 0, 0, 255 }
+    };
+
+    std::unordered_map<Asset::AssetID, RHI::Texture::Configuration> const default_textures = {
+        { DefaultResource::albedo_texture_id, default_texture_config },
+        { DefaultResource::normal_texture_id, default_normal_texture_config },
+        { DefaultResource::metallic_roughness_texture_id, default_metallic_roughness_texture_config },
+        { DefaultResource::occlusion_texture_id, default_occlusion_texture_config },
+        { DefaultResource::emissive_texture_id, default_emissive_texture_config }
+    };
+
+    for (auto const& [asset_id, texture_config] : default_textures) {
+        if (auto const it = m_texture_cache.find(asset_id); it != m_texture_cache.end()) {
+            continue;
+        }
+
+        auto texture_create_result = m_device->create_texture(texture_config);
+        if (!texture_create_result) {
+            return std::unexpected(std::move(texture_create_result).error());
+        }
+
+        m_texture_cache[asset_id] = std::move(texture_create_result).value();
+    }
+    return {};
 }
 
 }

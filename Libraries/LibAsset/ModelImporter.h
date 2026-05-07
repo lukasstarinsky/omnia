@@ -17,7 +17,11 @@ namespace Asset {
 struct MaterialData {
     std::string name;
     std::optional<AssetID> albedo_texture_id = std::nullopt;
-    Math::Vec4f base_color { 1.0f, 0.0f, 1.0f, 1.0f };
+    std::optional<AssetID> metallic_roughness_texture_id = std::nullopt;
+    std::optional<AssetID> normal_texture_id = std::nullopt;
+    std::optional<AssetID> occlusion_texture_id = std::nullopt;
+    std::optional<AssetID> emissive_texture_id = std::nullopt;
+    Graphics::MaterialParameters parameters;
 };
 
 struct ModelData {

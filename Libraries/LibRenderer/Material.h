@@ -18,14 +18,15 @@ class RENDERER_API Material final {
     OA_MAKE_DEFAULT_DESTRUCTIBLE(Material);
 
 public:
-    struct BaseData {
-        Math::Vec4f base_color { 1.0F, 1.0F, 1.0F, 1.0F };
-    };
-
-    struct Configuration : public BaseData {
+    struct Configuration {
         std::string name;
         RHI::Texture const* albedo_texture = nullptr;
+        RHI::Texture const* metallic_roughness_texture = nullptr;
+        RHI::Texture const* normal_texture = nullptr;
+        RHI::Texture const* occlusion_texture = nullptr;
+        RHI::Texture const* emissive_texture = nullptr;
         RHI::ResourceLayout const* resource_layout = nullptr;
+        Graphics::MaterialParameters parameters {};
     };
 
     static auto create(Configuration const& configuration, RHI::Device* device) -> std::expected<Material, std::string>;
@@ -34,7 +35,7 @@ public:
 private:
     Material() = default;
 private:
-    BaseData m_base_data;
+    Graphics::MaterialParameters m_parameters {};
     std::unique_ptr<RHI::Buffer> m_uniform_buffer;
     std::unique_ptr<RHI::ResourceSet> m_resource_set;
 };

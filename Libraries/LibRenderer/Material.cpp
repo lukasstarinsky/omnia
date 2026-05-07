@@ -14,9 +14,7 @@ auto Material::create(Configuration const& configuration, RHI::Device* device) -
     assert(configuration.albedo_texture != nullptr);
 
     Material material;
-    material.m_base_data = {
-        .base_color = configuration.base_color
-    };
+    material.m_parameters = configuration.parameters;
 
     auto resource_set_configuration = RHI::ResourceSet::Configuration {
         .layout = configuration.resource_layout,
@@ -28,9 +26,9 @@ auto Material::create(Configuration const& configuration, RHI::Device* device) -
     material.m_resource_set = std::move(resource_set_result).value();
 
     auto uniform_buffer_configuration = RHI::Buffer::Configuration {
-        .size = sizeof(BaseData),
+        .size = sizeof(Graphics::MaterialParameters),
         .usage = RHI::BufferUsage::Uniform,
-        .data = &material.m_base_data
+        .data = &material.m_parameters
     };
     auto uniform_buffer_result = device->create_buffer(uniform_buffer_configuration);
     if (!uniform_buffer_result.has_value()) {
@@ -38,8 +36,12 @@ auto Material::create(Configuration const& configuration, RHI::Device* device) -
     }
     material.m_uniform_buffer = std::move(uniform_buffer_result).value();
 
-    material.m_resource_set->set_texture(0, configuration.albedo_texture);
-    material.m_resource_set->set_uniform_buffer(1, material.m_uniform_buffer.get());
+    material.m_resource_set->set_uniform_buffer(0, material.m_uniform_buffer.get());
+    material.m_resource_set->set_texture(1, configuration.albedo_texture);
+    material.m_resource_set->set_texture(2, configuration.metallic_roughness_texture);
+    material.m_resource_set->set_texture(3, configuration.normal_texture);
+    material.m_resource_set->set_texture(4, configuration.occlusion_texture);
+    material.m_resource_set->set_texture(5, configuration.emissive_texture);
 
     return material;
 }

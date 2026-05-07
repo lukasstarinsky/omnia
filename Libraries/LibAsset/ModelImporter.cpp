@@ -63,19 +63,38 @@ auto ModelImporter::import_gltf(std::filesystem::path const& path, AssetRegistry
     for (cgltf_size i = 0; i < data->materials_count; ++i) {
         auto const& gltf_material = data->materials[i];
         auto& material = model_data.materials.emplace_back();
+        auto& material_parameters = material.parameters;
+
         material.name = gltf_material.name ? gltf_material.name : std::format("Material_{}", i);
+
+        auto resolve_texture_id = [&](cgltf_texture_view const& texture_view) -> std::optional<AssetID> {
+            if (texture_view.texture == nullptr || texture_view.texture->image == nullptr) {
+                return std::nullopt;
+            }
+            auto const texture_path = path.parent_path() / texture_view.texture->image->uri;
+            auto key = asset_registry.resolve_key(texture_path);
+            return asset_registry.key_to_id(key);
+        };
 
         if (gltf_material.has_pbr_metallic_roughness) {
             auto const& pbr = gltf_material.pbr_metallic_roughness;
 
-            if (pbr.base_color_texture.texture != nullptr) {
-                auto const* img = pbr.base_color_texture.texture->image;
-                auto const texture_path = path.parent_path() / img->uri;
-                auto key = asset_registry.resolve_key(texture_path);
-                material.albedo_texture_id = asset_registry.key_to_id(key);
-                material.base_color = Math::Vec4f(pbr.base_color_factor[0], pbr.base_color_factor[1], pbr.base_color_factor[2], pbr.base_color_factor[3]);
-            }
+            material_parameters.base_color = Math::Vec4f(pbr.base_color_factor[0], pbr.base_color_factor[1], pbr.base_color_factor[2], pbr.base_color_factor[3]);
+            material.albedo_texture_id = resolve_texture_id(pbr.base_color_texture);
+
+            material_parameters.metallic_factor = pbr.metallic_factor;
+            material_parameters.roughness_factor = pbr.roughness_factor;
+            material.metallic_roughness_texture_id = resolve_texture_id(pbr.metallic_roughness_texture);
         }
+
+        material_parameters.normal_scale = gltf_material.normal_texture.scale;
+        material.normal_texture_id = resolve_texture_id(gltf_material.normal_texture);
+
+        material_parameters.occlusion_strength = gltf_material.occlusion_texture.scale;
+        material.occlusion_texture_id = resolve_texture_id(gltf_material.occlusion_texture);
+
+        material_parameters.emissive_factor = Math::Vec3f(gltf_material.emissive_factor[0], gltf_material.emissive_factor[1], gltf_material.emissive_factor[2]);
+        material.emissive_texture_id = resolve_texture_id(gltf_material.emissive_texture);
     }
 
     auto get_material_index = [&](cgltf_material const* gltf_mat) -> u64 {

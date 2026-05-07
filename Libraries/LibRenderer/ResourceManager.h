@@ -15,6 +15,14 @@ namespace Renderer {
 
 class RENDERER_API ResourceManager final {
 public:
+    struct DefaultResource {
+        static constexpr auto albedo_texture_id = Asset::AssetID(1);
+        static constexpr auto normal_texture_id = Asset::AssetID(2);
+        static constexpr auto metallic_roughness_texture_id = Asset::AssetID(3);
+        static constexpr auto occlusion_texture_id = Asset::AssetID(4);
+        static constexpr auto emissive_texture_id = Asset::AssetID(5);
+    };
+
     static auto create(Asset::AssetManager const* asset_manager, RHI::Device* device) -> std::expected<std::unique_ptr<ResourceManager>, std::string>;
 
     auto resource_layout() const -> RHI::ResourceLayout const*;
@@ -26,11 +34,11 @@ private:
     ResourceManager() = default;
 
     auto load_texture(Asset::AssetID asset_id) -> std::expected<RHI::Texture const*, std::string>;
+    auto initialize_default_resources() -> std::expected<void, std::string>;
 private:
-    Asset::AssetManager const* m_asset_manager {};
-    Asset::AssetID m_default_texture_id { 0 };
-    std::unique_ptr<RHI::ResourceLayout> m_material_resource_layout;
     RHI::Device* m_device {};
+    Asset::AssetManager const* m_asset_manager {};
+    std::unique_ptr<RHI::ResourceLayout> m_material_resource_layout;
     std::unordered_map<Asset::AssetID, std::unique_ptr<RHI::Texture>> m_texture_cache;
 };
 
