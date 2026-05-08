@@ -9,6 +9,7 @@
 #include <LibMath/Math.h>
 #include <LibRenderer/ResourceManager.h>
 #include <LibRenderer/Camera.h>
+#include <LibRenderer/Light.h>
 #include <LibRenderer/Model.h>
 #include <LibRHI/Device.h>
 #include <LibPlatform/Event.h>
@@ -29,6 +30,10 @@
 struct PerFrameData {
     Math::Mat4f projection;
     Math::Mat4f view;
+    Renderer::DirectionalLight directional_light {
+        .direction = { -0.5F, -1.0F, -0.5F },
+        .color = { 1.0F, 1.0F, 1.0F }
+    };
 };
 
 // TODO: Cleanup all into LibRenderer
@@ -131,7 +136,7 @@ public:
                 {
                     .binding = 1,
                     .type = RHI::ResourceType::UniformBuffer,
-                    .stage = Graphics::ShaderStage::Vertex
+                    .stage = Graphics::ShaderStage::Vertex | Graphics::ShaderStage::Fragment
                 }
             }
         };
@@ -192,6 +197,11 @@ public:
                         .location = 2,
                         .offset = offsetof(Graphics::Vertex, normal),
                         .format = RHI::AttributeFormat::Float32Vec3
+                    },
+                    {
+                        .location = 3,
+                        .offset = offsetof(Graphics::Vertex, tangent),
+                        .format = RHI::AttributeFormat::Float32Vec4
                     }
                 }
             },
