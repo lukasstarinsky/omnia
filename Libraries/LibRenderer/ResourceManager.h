@@ -33,7 +33,7 @@ public:
 private:
     ResourceManager() = default;
 
-    auto load_texture(Asset::AssetID asset_id) -> std::expected<RHI::Texture const*, std::string>;
+    auto load_texture(Asset::AssetID asset_id, RHI::TextureFormat format = RHI::TextureFormat::R8G8B8A8_UNORM) -> std::expected<RHI::Texture const*, std::string>;
     auto initialize_default_resources() -> std::expected<void, std::string>;
 private:
     RHI::Device* m_device {};

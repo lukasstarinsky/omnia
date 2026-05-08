@@ -10,11 +10,9 @@
 
 namespace Renderer {
 
-struct DirectionalLight {
-    Math::Vec3f direction;
-    f32 pad {};
-    Math::Vec3f color;
-    f32 intensity = 1.0F;
+struct alignas(16) DirectionalLight {
+    Math::Vec4f direction;
+    Math::Vec4f color;
 };
 
 }

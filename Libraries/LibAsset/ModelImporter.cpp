@@ -241,7 +241,7 @@ auto ModelImporter::import_gltf(std::filesystem::path const& path, AssetRegistry
                     auto t = tangent - normal * Math::dot(normal, tangent);
                     t.normalize();
 
-                    auto handedness = (Math::dot(Math::cross(normal, tangent), bitangent) < 0.0F) ? -1.0F : 1.0F;
+                    auto handedness = (Math::dot(Math::cross(normal, t), bitangent) < 0.0F) ? -1.0F : 1.0F;
 
                     vertex.tangent = Math::Vec4f(t.x, t.y, t.z, handedness);
                 }

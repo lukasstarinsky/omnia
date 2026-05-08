@@ -30,9 +30,10 @@
 struct PerFrameData {
     Math::Mat4f projection;
     Math::Mat4f view;
+    Math::Vec4f camera_position;
     Renderer::DirectionalLight directional_light {
-        .direction = { -0.5F, -1.0F, -0.5F },
-        .color = { 1.0F, 1.0F, 1.0F }
+        .direction = { -0.5F, -1.0F, -0.5F, 0.0F },
+        .color = { 1.0F, 1.0F, 1.0F, 3.0F }
     };
 };
 
@@ -314,7 +315,8 @@ public:
 
             PerFrameData const per_frame_data {
                 .projection = m_camera.projection(),
-                .view = m_camera.view()
+                .view = m_camera.view(),
+                .camera_position = m_camera.position()
             };
             m_per_frame->set_data(&per_frame_data, sizeof(PerFrameData));
 

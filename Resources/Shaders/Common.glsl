@@ -1,7 +1,9 @@
+#define PI 3.14159265359
+
 struct MaterialParameters
 {
     vec4 base_color;
-    vec3 emissive_factor;
+    vec4 emissive_factor;
     float metallic_factor;
     float roughness_factor;
     float normal_scale;
@@ -10,14 +12,14 @@ struct MaterialParameters
 
 struct DirectionalLight
 {
-    vec3 direction;
-    vec3 color;
-    float intensity;
+    vec4 direction;
+    vec4 color;
 };
 
 layout(set = 0, binding = 1) uniform PerFrameUniform
 {
     mat4 u_projection;
     mat4 u_view;
+    vec4 u_camera_position;
     DirectionalLight u_directional_light;
 };

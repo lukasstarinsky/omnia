@@ -25,7 +25,7 @@ using Index = u32;
 
 struct MaterialParameters {
     Math::Vec4f base_color { 1.0F, 1.0F, 1.0F, 1.0F };
-    Math::Vec3f emissive_factor { 0.0F, 0.0F, 0.0F };
+    Math::Vec4f emissive_factor { 1.0F, 1.0F, 1.0F, 1.0F };
     f32 metallic_factor = 1.0F;
     f32 roughness_factor = 1.0F;
     f32 normal_scale = 1.0F;

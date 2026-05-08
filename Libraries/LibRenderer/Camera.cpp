@@ -19,12 +19,17 @@ Camera::Camera(Configuration const& config)
     m_view = Math::Mat4f::from_quaternion(m_orientation).translate(-m_config.position);
 }
 
-auto Camera::projection() const -> Math::Mat4f
+auto Camera::position() const -> Math::Vec3f const&
+{
+    return m_config.position;
+}
+
+auto Camera::projection() const -> Math::Mat4f const&
 {
     return m_projection;
 }
 
-auto Camera::view() const -> Math::Mat4f
+auto Camera::view() const -> Math::Mat4f const&
 {
     return m_view;
 }

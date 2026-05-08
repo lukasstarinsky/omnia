@@ -43,8 +43,9 @@ public:
 
     Camera(Configuration const& config);
 
-    auto projection() const -> Math::Mat4f;
-    auto view() const -> Math::Mat4f;
+    auto position() const -> Math::Vec3f const&;
+    auto projection() const -> Math::Mat4f const&;
+    auto view() const -> Math::Mat4f const&;
 
     auto forward() const -> Math::Vec3f;
     auto right() const -> Math::Vec3f;

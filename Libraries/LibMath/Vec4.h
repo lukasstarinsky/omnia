@@ -31,6 +31,14 @@ public:
     {
     }
 
+    constexpr Vec4(Vec3<T> const& vec3, T w = static_cast<T>(1))
+        : x(vec3.x)
+        , y(vec3.y)
+        , z(vec3.z)
+        , w(w)
+    {
+    }
+
     constexpr auto xyz() const -> Vec3<T>
     {
         return Vec3<T> { x, y, z };

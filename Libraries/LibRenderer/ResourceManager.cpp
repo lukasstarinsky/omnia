@@ -75,7 +75,11 @@ auto ResourceManager::load_model(Asset::AssetID asset_id) -> std::expected<std::
         if (!texture_id.has_value()) {
             return m_texture_cache[default_id].get();
         }
-        auto const texture_result = load_texture(texture_id.value());
+        RHI::TextureFormat format = RHI::TextureFormat::R8G8B8A8_UNORM;
+        if (default_id == DefaultResource::albedo_texture_id) {
+            format = RHI::TextureFormat::R8G8B8A8_SRGB;
+        }
+        auto const texture_result = load_texture(texture_id.value(), format);
         if (!texture_result) {
             return m_texture_cache[default_id].get();
         }
@@ -132,7 +136,7 @@ auto ResourceManager::load_shader(Asset::AssetID asset_id) -> std::expected<std:
     return std::move(shader_create_result).value();
 }
 
-auto ResourceManager::load_texture(Asset::AssetID asset_id) -> std::expected<RHI::Texture const*, std::string>
+auto ResourceManager::load_texture(Asset::AssetID asset_id, RHI::TextureFormat format) -> std::expected<RHI::Texture const*, std::string>
 {
     if (auto const it = m_texture_cache.find(asset_id); it != m_texture_cache.end()) {
         return it->second.get();
@@ -146,7 +150,7 @@ auto ResourceManager::load_texture(Asset::AssetID asset_id) -> std::expected<RHI
     RHI::Texture::Configuration const texture_config {
         .width = texture_data->width,
         .height = texture_data->height,
-        .format = RHI::TextureFormat::R8G8B8A8_SRGB,
+        .format = format,
         .usage = RHI::TextureUsage::Sampled,
         .data = texture_data->data
     };
@@ -193,7 +197,7 @@ auto ResourceManager::initialize_default_resources() -> std::expected<void, std:
     RHI::Texture::Configuration const default_emissive_texture_config {
         .width = 1,
         .height = 1,
-        .format = RHI::TextureFormat::R8G8B8A8_SRGB,
+        .format = RHI::TextureFormat::R8G8B8A8_UNORM,
         .usage = RHI::TextureUsage::Sampled,
         .data = { 0, 0, 0, 255 }
     };

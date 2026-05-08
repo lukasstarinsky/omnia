@@ -24,11 +24,6 @@ void main()
     gl_Position = u_projection * u_view * vec4(out_world_pos, 1.0);
 
     mat3 normal_matrix = transpose(inverse(mat3(u_model)));
-
-    vec3 N = normalize(normal_matrix * in_normal);
-    vec3 T = normalize(normal_matrix * in_tangent.xyz);
-    T = normalize(T - dot(T, N) * N);
-
-    out_normal = N;
-    out_tangent = vec4(T, in_tangent.w);
+    out_normal = normal_matrix * in_normal;
+    out_tangent = vec4(normal_matrix * in_tangent.xyz, in_tangent.w);
 }
