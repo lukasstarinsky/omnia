@@ -44,28 +44,33 @@ auto VkPipeline::create(Configuration const& config, RHI::VkDevice const* device
         }
     };
 
-    VkVertexInputBindingDescription const vertex_input_binding_description {
-        .binding = 0,
-        .stride = config.vertex_binding.stride,
-        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-    };
+    std::vector<VkVertexInputBindingDescription> vertex_input_binding_descriptions;
+    if (config.vertex_binding.has_value()) {
+        vertex_input_binding_descriptions.push_back({
+            .binding = 0,
+            .stride = config.vertex_binding->stride,
+            .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+        });
+    }
 
     std::vector<VkVertexInputAttributeDescription> vertex_input_attribute_descriptions;
-    for (auto const& attribute : config.vertex_binding.attributes) {
-        vertex_input_attribute_descriptions.push_back({
-            .location = attribute.location,
-            .binding = 0,
-            .format = to_vk(attribute.format),
-            .offset = attribute.offset,
-        });
+    if (config.vertex_binding.has_value()) {
+        for (auto const& attribute : config.vertex_binding->attributes) {
+            vertex_input_attribute_descriptions.push_back({
+                .location = attribute.location,
+                .binding = 0,
+                .format = to_vk(attribute.format),
+                .offset = attribute.offset,
+            });
+        }
     }
 
     VkPipelineVertexInputStateCreateInfo const vertex_input_state_create_info {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .vertexBindingDescriptionCount = 1,
-        .pVertexBindingDescriptions = &vertex_input_binding_description,
+        .vertexBindingDescriptionCount = static_cast<u32>(vertex_input_binding_descriptions.size()),
+        .pVertexBindingDescriptions = vertex_input_binding_descriptions.data(),
         .vertexAttributeDescriptionCount = static_cast<u32>(vertex_input_attribute_descriptions.size()),
         .pVertexAttributeDescriptions = vertex_input_attribute_descriptions.data(),
     };

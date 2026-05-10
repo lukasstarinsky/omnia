@@ -1,5 +1,6 @@
 set(SOURCES
         Camera.cpp
+        DeferredRenderer.cpp
         Material.cpp
         Model.cpp
         ResourceManager.cpp

@@ -29,6 +29,7 @@ public:
 
     void set_sampler(u32 binding, Sampler const* sampler) override;
     void set_texture(u32 binding, Texture const* texture) override;
+    void set_depth_texture(u32 binding, Texture const* texture) override;
     void set_uniform_buffer(u32 binding, Buffer const* buffer) override;
 private:
     VkResourceSet() = default;

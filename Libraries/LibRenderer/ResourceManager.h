@@ -26,20 +26,24 @@ public:
     static auto create(Asset::AssetManager const* asset_manager, RHI::Device* device) -> std::expected<std::unique_ptr<ResourceManager>, std::string>;
 
     auto resource_layout() const -> RHI::ResourceLayout const*;
-    auto load_model(std::string const& asset_name) -> std::expected<std::unique_ptr<Model>, std::string>;
-    auto load_model(Asset::AssetID asset_id) -> std::expected<std::unique_ptr<Model>, std::string>;
-    auto load_shader(std::string const& asset_name) -> std::expected<std::unique_ptr<RHI::Shader>, std::string>;
-    auto load_shader(Asset::AssetID asset_id) -> std::expected<std::unique_ptr<RHI::Shader>, std::string>;
+    auto load_model(std::string const& asset_name) -> std::expected<Model const*, std::string>;
+    auto load_model(Asset::AssetID asset_id) -> std::expected<Model const*, std::string>;
+
+    auto load_shader(std::string const& asset_name) -> std::expected<RHI::Shader const*, std::string>;
+    auto load_shader(Asset::AssetID asset_id) -> std::expected<RHI::Shader const*, std::string>;
+
+    auto load_texture(std::string const& asset_name, RHI::TextureFormat format = RHI::TextureFormat::R8G8B8A8_UNORM) -> std::expected<RHI::Texture const*, std::string>;
+    auto load_texture(Asset::AssetID asset_id, RHI::TextureFormat format = RHI::TextureFormat::R8G8B8A8_UNORM) -> std::expected<RHI::Texture const*, std::string>;
 private:
     ResourceManager() = default;
-
-    auto load_texture(Asset::AssetID asset_id, RHI::TextureFormat format = RHI::TextureFormat::R8G8B8A8_UNORM) -> std::expected<RHI::Texture const*, std::string>;
     auto initialize_default_resources() -> std::expected<void, std::string>;
 private:
     RHI::Device* m_device {};
     Asset::AssetManager const* m_asset_manager {};
     std::unique_ptr<RHI::ResourceLayout> m_material_resource_layout;
     std::unordered_map<Asset::AssetID, std::unique_ptr<RHI::Texture>> m_texture_cache;
+    std::unordered_map<Asset::AssetID, std::unique_ptr<RHI::Shader>> m_shader_cache;
+    std::unordered_map<Asset::AssetID, std::unique_ptr<Model>> m_model_cache;
 };
 
 }

@@ -125,8 +125,8 @@ auto VkRenderPass::create_render_pass() -> std::expected<void, std::string>
             .storeOp = to_vk(depth_attachment.store_op),
             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+            .initialLayout = to_vk(depth_attachment.initial_layout),
+            .finalLayout = to_vk(depth_attachment.final_layout)
         };
         depth_attachment_reference.attachment = static_cast<u32>(attachment_descriptions.size());
         depth_attachment_reference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -208,7 +208,7 @@ auto to_vk(ImageLayout layout) -> VkImageLayout
     case ImageLayout::ColorAttachment:
         return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     case ImageLayout::DepthReadOnly:
-        return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+        return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
     case ImageLayout::PresentSrc:
         return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     }

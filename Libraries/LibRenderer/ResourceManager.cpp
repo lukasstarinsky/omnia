@@ -29,11 +29,13 @@ auto ResourceManager::create(Asset::AssetManager const* asset_manager, RHI::Devi
 
     u32 const texture_count = 5U;
     for (u32 i = 1; i <= texture_count; i++) {
-        material_resource_layout_config.bindings.push_back({
-            .binding = i,
-            .type = RHI::ResourceType::Texture,
-            .stage = Graphics::ShaderStage::Fragment
-        });
+        material_resource_layout_config.bindings.push_back(
+            {
+                .binding = i,
+                .type = RHI::ResourceType::Texture,
+                .stage = Graphics::ShaderStage::Fragment
+            }
+        );
     }
 
     auto material_resource_layout_result = device->create_resource_layout(material_resource_layout_config);
@@ -53,7 +55,7 @@ auto ResourceManager::resource_layout() const -> RHI::ResourceLayout const*
     return m_material_resource_layout.get();
 }
 
-auto ResourceManager::load_model(std::string const& asset_name) -> std::expected<std::unique_ptr<Model>, std::string>
+auto ResourceManager::load_model(std::string const& asset_name) -> std::expected<Model const*, std::string>
 {
     auto asset_id_result = m_asset_manager->registry().key_to_id(asset_name);
     if (!asset_id_result.has_value()) {
@@ -62,9 +64,13 @@ auto ResourceManager::load_model(std::string const& asset_name) -> std::expected
     return load_model(asset_id_result.value());
 }
 
-auto ResourceManager::load_model(Asset::AssetID asset_id) -> std::expected<std::unique_ptr<Model>, std::string>
+auto ResourceManager::load_model(Asset::AssetID asset_id) -> std::expected<Model const*, std::string>
 {
-    auto const model_data = m_asset_manager->import <Asset::ModelData>(asset_id);
+    if (auto const it = m_model_cache.find(asset_id); it != m_model_cache.end()) {
+        return it->second.get();
+    }
+
+    auto const model_data = m_asset_manager->import<Asset::ModelData>(asset_id);
     if (!model_data) {
         return std::unexpected(std::move(model_data).error());
     }
@@ -109,10 +115,11 @@ auto ResourceManager::load_model(Asset::AssetID asset_id) -> std::expected<std::
     if (!model_create_result) {
         return std::unexpected(std::move(model_create_result).error());
     }
-    return std::move(model_create_result).value();
+    m_model_cache[asset_id] = std::move(model_create_result).value();
+    return m_model_cache[asset_id].get();
 }
 
-auto ResourceManager::load_shader(std::string const& asset_name) -> std::expected<std::unique_ptr<RHI::Shader>, std::string>
+auto ResourceManager::load_shader(std::string const& asset_name) -> std::expected<RHI::Shader const*, std::string>
 {
     auto asset_id_result = m_asset_manager->registry().key_to_id(asset_name);
     if (!asset_id_result.has_value()) {
@@ -121,9 +128,13 @@ auto ResourceManager::load_shader(std::string const& asset_name) -> std::expecte
     return load_shader(asset_id_result.value());
 }
 
-auto ResourceManager::load_shader(Asset::AssetID asset_id) -> std::expected<std::unique_ptr<RHI::Shader>, std::string>
+auto ResourceManager::load_shader(Asset::AssetID asset_id) -> std::expected<RHI::Shader const*, std::string>
 {
-    auto const shader_data = m_asset_manager->import <RHI::Shader::Configuration>(asset_id);
+    if (auto const it = m_shader_cache.find(asset_id); it != m_shader_cache.end()) {
+        return it->second.get();
+    }
+
+    auto const shader_data = m_asset_manager->import<RHI::Shader::Configuration>(asset_id);
     if (!shader_data) {
         return std::unexpected(std::move(shader_data).error());
     }
@@ -133,7 +144,17 @@ auto ResourceManager::load_shader(Asset::AssetID asset_id) -> std::expected<std:
         return std::unexpected(std::move(shader_create_result).error());
     }
 
-    return std::move(shader_create_result).value();
+    m_shader_cache[asset_id] = std::move(shader_create_result).value();
+    return m_shader_cache[asset_id].get();
+}
+
+auto ResourceManager::load_texture(std::string const& asset_name, RHI::TextureFormat format) -> std::expected<const RHI::Texture*, std::string>
+{
+    auto asset_id_result = m_asset_manager->registry().key_to_id(asset_name);
+    if (!asset_id_result.has_value()) {
+        return std::unexpected(std::format("Failed to find asset with name '{}'.", asset_name));
+    }
+    return load_texture(asset_id_result.value(), format);
 }
 
 auto ResourceManager::load_texture(Asset::AssetID asset_id, RHI::TextureFormat format) -> std::expected<RHI::Texture const*, std::string>
@@ -142,7 +163,7 @@ auto ResourceManager::load_texture(Asset::AssetID asset_id, RHI::TextureFormat f
         return it->second.get();
     }
 
-    auto const texture_data = m_asset_manager->import<Asset::TextureData>(asset_id);
+    auto const texture_data = m_asset_manager->import <Asset::TextureData>(asset_id);
     if (!texture_data) {
         return std::unexpected(std::move(texture_data).error());
     }

@@ -33,7 +33,8 @@ auto VkRenderTarget::create(Configuration const& config, RHI::VkDevice const* de
     }
 
     if (config.depth_texture != nullptr) {
-        attachments.push_back(to_vk(config.depth_texture)->image_view());
+        auto* vk_texture = to_vk(config.depth_texture);
+        attachments.push_back(vk_texture->image_view());
     }
 
     auto const* vk_render_pass = to_vk(config.render_pass);

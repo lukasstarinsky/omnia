@@ -6,12 +6,13 @@
 
 #pragma once
 
+#include <optional>
 #include <vector>
 
 #include <Common/Noncopyable.h>
 #include <Common/Types.h>
-#include <LibRHI/Forward.h>
 #include <LibGraphics/ShaderTypes.h>
+#include <LibRHI/Forward.h>
 
 namespace RHI {
 
@@ -62,9 +63,9 @@ public:
     };
 
     struct Depth {
-        bool test_enable;
-        bool write_enable;
-        CompareOp compare_op;
+        bool test_enable {};
+        bool write_enable {};
+        CompareOp compare_op = CompareOp::Never;
     };
 
     struct VertexAttribute {
@@ -94,7 +95,7 @@ public:
         Rasterization rasterization {};
         Depth depth {};
         RenderPass const* render_pass {};
-        VertexBinding vertex_binding {};
+        std::optional<VertexBinding> vertex_binding = std::nullopt;
         std::vector<ColorBlendAttachment> color_blend_attachments;
         std::vector<ResourceLayout const*> resource_layouts;
         std::vector<PushConstant> push_constants {};
