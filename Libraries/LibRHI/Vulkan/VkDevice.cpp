@@ -48,8 +48,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_callback(VkDebugUtilsMessageSever
 
 auto VkDevice::create(Configuration const& config) -> std::expected<std::unique_ptr<VkDevice>, std::string>
 {
-    std::unique_ptr<VkDevice> device(new VkDevice);
-    device->m_config = config;
+    std::unique_ptr<VkDevice> device(new VkDevice(config));
 
     return device->create_instance()
         .and_then([&]() {
@@ -70,6 +69,12 @@ auto VkDevice::create(Configuration const& config) -> std::expected<std::unique_
         .transform([&]() {
             return std::move(device);
         });
+}
+
+VkDevice::VkDevice(Configuration const& config)
+    : m_config(config)
+{
+    assert(m_config.window != nullptr);
 }
 
 VkDevice::~VkDevice()

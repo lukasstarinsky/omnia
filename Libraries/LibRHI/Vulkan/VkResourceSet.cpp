@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <cassert>
 #include <format>
 
 #include <LibRHI/Vulkan/VkBuffer.h>
@@ -14,10 +15,9 @@
 
 namespace RHI {
 
-auto VkResourceSet::create(ResourceSet::Configuration const& config, RHI::VkDevice* device) -> std::expected<std::unique_ptr<VkResourceSet>, std::string>
+auto VkResourceSet::create(Configuration const& config, RHI::VkDevice* device) -> std::expected<std::unique_ptr<VkResourceSet>, std::string>
 {
-    std::unique_ptr<VkResourceSet> resource_set(new VkResourceSet);
-    resource_set->m_device = device;
+    std::unique_ptr<VkResourceSet> resource_set(new VkResourceSet(config, device));
 
     auto* layout_handle = to_vk(config.layout)->handle();
     VkDescriptorSetAllocateInfo descriptor_set_allocate_info {
@@ -41,6 +41,13 @@ auto VkResourceSet::create(ResourceSet::Configuration const& config, RHI::VkDevi
     }
 
     return resource_set;
+}
+
+VkResourceSet::VkResourceSet(Configuration const& config, RHI::VkDevice const* device)
+    : m_device(device)
+{
+    assert(device != nullptr);
+    assert(config.layout != nullptr);
 }
 
 VkResourceSet::~VkResourceSet()

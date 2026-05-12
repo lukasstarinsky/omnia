@@ -18,9 +18,6 @@ namespace RHI {
 class VkDevice;
 
 class VkPipeline final : public Pipeline {
-    OA_MAKE_NONCOPYABLE(VkPipeline);
-    OA_MAKE_DEFAULT_MOVABLE(VkPipeline);
-
 public:
     static auto create(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<VkPipeline>, std::string>;
 
@@ -29,7 +26,7 @@ public:
     auto handle() const -> ::VkPipeline;
     auto layout() const -> VkPipelineLayout;
 private:
-    VkPipeline() = default;
+    VkPipeline(Configuration const& config, RHI::VkDevice const* device);
 private:
     Configuration m_config;
     RHI::VkDevice const* m_device {};

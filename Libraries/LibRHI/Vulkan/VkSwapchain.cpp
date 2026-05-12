@@ -16,10 +16,7 @@ namespace RHI {
 
 auto VkSwapchain::create(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<VkSwapchain>, std::string>
 {
-    std::unique_ptr<VkSwapchain> swapchain(new VkSwapchain);
-
-    swapchain->m_device = device;
-    swapchain->m_config = config;
+    std::unique_ptr<VkSwapchain> swapchain(new VkSwapchain(config, device));
 
     return swapchain->create_swapchain()
         .and_then([&]() {
@@ -34,6 +31,13 @@ auto VkSwapchain::create(Configuration const& config, RHI::VkDevice const* devic
         .transform([&]() {
             return std::move(swapchain);
         });
+}
+
+VkSwapchain::VkSwapchain(Configuration const& config, RHI::VkDevice const* device)
+    : m_config(config)
+    , m_device(device)
+{
+    assert(device != nullptr);
 }
 
 VkSwapchain::~VkSwapchain()

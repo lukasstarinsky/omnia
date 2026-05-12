@@ -16,9 +16,6 @@
 namespace RHI {
 
 class VkRenderTarget final : public RenderTarget {
-    OA_MAKE_NONCOPYABLE(VkRenderTarget);
-    OA_MAKE_DEFAULT_MOVABLE(VkRenderTarget);
-
 public:
     static auto create(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<VkRenderTarget>, std::string>;
     ~VkRenderTarget() override;
@@ -27,7 +24,7 @@ public:
     auto width() const -> u32 override;
     auto height() const -> u32 override;
 private:
-    VkRenderTarget() = default;
+    VkRenderTarget(Configuration const& config, RHI::VkDevice const* device);
 private:
     RHI::VkDevice const* m_device {};
     VkFramebuffer m_framebuffer {};

@@ -53,7 +53,7 @@ enum class AttributeFormat : u8 {
 
 class Pipeline {
     OA_MAKE_NONCOPYABLE(Pipeline);
-    OA_MAKE_DEFAULT_MOVABLE(Pipeline);
+    OA_MAKE_NONMOVABLE(Pipeline);
 
 public:
     struct Rasterization {

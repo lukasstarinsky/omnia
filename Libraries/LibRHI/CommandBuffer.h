@@ -15,9 +15,6 @@
 namespace RHI {
 
 class CommandBuffer {
-    OA_MAKE_NONCOPYABLE(CommandBuffer);
-    OA_MAKE_DEFAULT_MOVABLE(CommandBuffer);
-
 public:
     virtual ~CommandBuffer() = default;
 

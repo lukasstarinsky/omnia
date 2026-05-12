@@ -14,7 +14,7 @@ namespace RHI {
 
 class RenderTarget {
     OA_MAKE_NONCOPYABLE(RenderTarget);
-    OA_MAKE_DEFAULT_MOVABLE(RenderTarget);
+    OA_MAKE_NONMOVABLE(RenderTarget);
 
 public:
     struct Configuration {

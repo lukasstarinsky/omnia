@@ -14,7 +14,7 @@ namespace RHI {
 
 class ResourceSet {
     OA_MAKE_NONCOPYABLE(ResourceSet);
-    OA_MAKE_DEFAULT_MOVABLE(ResourceSet);
+    OA_MAKE_NONMOVABLE(ResourceSet);
 
 public:
     struct Configuration {

@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <cassert>
 #include <format>
 
 #include <LibRHI/Vulkan/VkBuffer.h>
@@ -13,9 +14,7 @@ namespace RHI {
 
 auto VkBuffer::create(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<VkBuffer>, std::string>
 {
-    std::unique_ptr<VkBuffer> buffer(new VkBuffer);
-    buffer->m_config = config;
-    buffer->m_device = device;
+    std::unique_ptr<VkBuffer> buffer(new VkBuffer(config, device));
 
     return buffer->create_buffer()
         .and_then([&]() {
@@ -24,6 +23,13 @@ auto VkBuffer::create(Configuration const& config, RHI::VkDevice const* device) 
         .transform([&]() {
             return std::move(buffer);
         });
+}
+
+VkBuffer::VkBuffer(Configuration const& config, RHI::VkDevice const* device)
+    : m_config(config)
+    , m_device(device)
+{
+    assert(m_device != nullptr);
 }
 
 VkBuffer::~VkBuffer()

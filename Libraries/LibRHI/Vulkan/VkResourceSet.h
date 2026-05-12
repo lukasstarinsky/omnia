@@ -17,11 +17,8 @@
 namespace RHI {
 
 class VkResourceSet : public ResourceSet {
-    OA_MAKE_NONCOPYABLE(VkResourceSet);
-    OA_MAKE_DEFAULT_MOVABLE(VkResourceSet);
-
 public:
-    static auto create(ResourceSet::Configuration const& config, RHI::VkDevice* device) -> std::expected<std::unique_ptr<VkResourceSet>, std::string>;
+    static auto create(Configuration const& config, RHI::VkDevice* device) -> std::expected<std::unique_ptr<VkResourceSet>, std::string>;
 
     ~VkResourceSet() override;
 
@@ -32,7 +29,7 @@ public:
     void set_depth_texture(u32 binding, Texture const* texture) override;
     void set_uniform_buffer(u32 binding, Buffer const* buffer) override;
 private:
-    VkResourceSet() = default;
+    VkResourceSet(Configuration const& config, RHI::VkDevice const* device);
 private:
     VkDescriptorSet m_handle {};
     RHI::VkDevice const* m_device {};

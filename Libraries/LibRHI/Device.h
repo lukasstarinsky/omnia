@@ -31,7 +31,7 @@ namespace RHI {
 
 class Device {
     OA_MAKE_NONCOPYABLE(Device);
-    OA_MAKE_DEFAULT_MOVABLE(Device);
+    OA_MAKE_NONMOVABLE(Device);
 
 public:
     enum class API : u8 {

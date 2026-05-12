@@ -23,7 +23,7 @@ enum class BufferUsage : u8 {
 
 class Buffer {
     OA_MAKE_NONCOPYABLE(Buffer);
-    OA_MAKE_DEFAULT_MOVABLE(Buffer);
+    OA_MAKE_NONMOVABLE(Buffer);
 
 public:
     struct Configuration {

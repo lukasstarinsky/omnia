@@ -15,10 +15,7 @@
 
 namespace RHI {
 
-class VkResourceLayout : public ResourceLayout {
-    OA_MAKE_NONCOPYABLE(VkResourceLayout);
-    OA_MAKE_DEFAULT_MOVABLE(VkResourceLayout);
-
+class VkResourceLayout final : public ResourceLayout {
 public:
     static auto create(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<VkResourceLayout>, std::string>;
 
@@ -26,7 +23,7 @@ public:
 
     auto handle() const -> VkDescriptorSetLayout;
 private:
-    VkResourceLayout() = default;
+    VkResourceLayout(RHI::VkDevice const* device);
 private:
     RHI::VkDevice const* m_device {};
     VkDescriptorSetLayout m_handle {};

@@ -13,18 +13,11 @@ namespace RHI {
 
 auto VkShader::create(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<VkShader>, std::string>
 {
-    assert(!config.variants.empty());
+    std::unique_ptr<VkShader> shader(new VkShader(config, device));
 
     auto variant_it = std::ranges::find_if(config.variants.begin(), config.variants.end(), [](Graphics::ShaderVariant const& variant) {
         return variant.format == Graphics::ShaderFormat::SPIRV;
     });
-    assert(variant_it != config.variants.end());
-    assert(variant_it->bytecode.size() % 4 == 0);
-
-    std::unique_ptr<VkShader> shader(new VkShader);
-    shader->m_config = config;
-    shader->m_device = device;
-
     VkShaderModuleCreateInfo const shader_module_create_info {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .pNext = nullptr,
@@ -37,6 +30,20 @@ auto VkShader::create(Configuration const& config, RHI::VkDevice const* device) 
     }
 
     return shader;
+}
+
+VkShader::VkShader(Configuration const& config, RHI::VkDevice const* device)
+    : m_config(config)
+    , m_device(device)
+{
+    assert(device != nullptr);
+    assert(!config.variants.empty());
+
+    auto variant_it = std::ranges::find_if(config.variants.begin(), config.variants.end(), [](Graphics::ShaderVariant const& variant) {
+        return variant.format == Graphics::ShaderFormat::SPIRV;
+    });
+    assert(variant_it != config.variants.end());
+    assert(variant_it->bytecode.size() % 4 == 0);
 }
 
 VkShader::~VkShader()

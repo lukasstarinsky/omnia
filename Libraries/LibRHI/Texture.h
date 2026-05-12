@@ -29,7 +29,7 @@ enum class TextureFormat : u8 {
 
 class Texture {
     OA_MAKE_NONCOPYABLE(Texture);
-    OA_MAKE_DEFAULT_MOVABLE(Texture);
+    OA_MAKE_NONMOVABLE(Texture);
 
 public:
     struct Configuration {

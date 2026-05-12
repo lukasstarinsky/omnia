@@ -17,9 +17,6 @@
 namespace RHI {
 
 class VkBuffer final : public Buffer {
-    OA_MAKE_NONCOPYABLE(VkBuffer);
-    OA_MAKE_DEFAULT_MOVABLE(VkBuffer);
-
 public:
     static auto create(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<VkBuffer>, std::string>;
 
@@ -28,7 +25,7 @@ public:
     void set_data(void const* data, u64 size) override;
     auto handle() const -> ::VkBuffer;
 private:
-    VkBuffer() = default;
+    VkBuffer(Configuration const& config, RHI::VkDevice const* device);
 
     auto create_buffer() -> std::expected<void, std::string>;
     auto upload_data() -> std::expected<void, std::string>;

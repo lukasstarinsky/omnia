@@ -25,7 +25,7 @@ public:
     auto config() const -> Configuration const& override;
     auto handle() const -> VkShaderModule;
 private:
-    VkShader() = default;
+    VkShader(Configuration const& config, RHI::VkDevice const* device);
 private:
     Configuration m_config;
     RHI::VkDevice const* m_device {};

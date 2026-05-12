@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <cassert>
 #include <format>
 
 #include <LibRHI/Vulkan/VkStagingBuffer.h>
@@ -13,11 +14,7 @@ namespace RHI {
 
 auto VkTexture::create_owned(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<VkTexture>, std::string>
 {
-    std::unique_ptr<VkTexture> texture(new VkTexture);
-    texture->m_width = config.width;
-    texture->m_height = config.height;
-    texture->m_format = config.format;
-    texture->m_device = device;
+    std::unique_ptr<VkTexture> texture(new VkTexture(config, device));
     texture->m_owned = true;
 
     VkImageCreateInfo const image_create_info {
@@ -107,13 +104,19 @@ auto VkTexture::create_owned(Configuration const& config, RHI::VkDevice const* d
 
 auto VkTexture::create_borrowed(Configuration const& config, const RHI::VkDevice* device, VkImage image, VkImageView image_view) -> std::expected<std::unique_ptr<VkTexture>, std::string>
 {
-    std::unique_ptr<VkTexture> texture(new VkTexture);
-    texture->m_width = config.width;
-    texture->m_height = config.height;
-    texture->m_device = device;
+    std::unique_ptr<VkTexture> texture(new VkTexture(config, device));
     texture->m_image = image;
     texture->m_image_view = image_view;
     return texture;
+}
+
+VkTexture::VkTexture(const RHI::Texture::Configuration& config, const RHI::VkDevice* device)
+    : m_width(config.width)
+    , m_height(config.height)
+    , m_format(config.format)
+    , m_device(device)
+{
+    assert(device);
 }
 
 VkTexture::~VkTexture()

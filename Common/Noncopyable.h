@@ -11,19 +11,19 @@ private:                       \
 c(c const&) = delete;          \
 c& operator=(c const&) = delete
 
-#define OA_MAKE_NONMOVABLE(c) \
-private:                      \
-c(c&&) = delete;              \
-c& operator=(c&&) = delete
+#define OA_MAKE_NONMOVABLE(c)       \
+private:                            \
+c(c&&) noexcept = delete;           \
+c& operator=(c&&) noexcept = delete
 
 #define OA_MAKE_NONCONSTRUCTIBLE(c) \
 private:                            \
 c() = delete
 
-#define OA_MAKE_DEFAULT_MOVABLE(c) \
-public:                            \
-c(c&&) = default;                  \
-c& operator=(c&&) = default
+#define OA_MAKE_DEFAULT_MOVABLE(c)      \
+public:                                 \
+c(c&&) noexcept = default;              \
+c& operator=(c&&) noexcept = default
 
 #define OA_MAKE_DEFAULT_COPYABLE(c) \
 public:                             \

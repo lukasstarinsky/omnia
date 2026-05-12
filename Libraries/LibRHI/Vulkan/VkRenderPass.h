@@ -17,9 +17,6 @@
 namespace RHI {
 
 class VkRenderPass final : public RenderPass {
-    OA_MAKE_NONCOPYABLE(VkRenderPass);
-    OA_MAKE_DEFAULT_MOVABLE(VkRenderPass);
-
 public:
     static auto create(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<RHI::VkRenderPass>, std::string>;
 
@@ -30,7 +27,7 @@ public:
     void begin(CommandBuffer const* command_buffer, RenderTarget const* render_target) const override;
     void end(CommandBuffer const* command_buffer) const override;
 private:
-    VkRenderPass() = default;
+    VkRenderPass(Configuration const& config, RHI::VkDevice const* device);
 
     auto create_render_pass() -> std::expected<void, std::string>;
 private:

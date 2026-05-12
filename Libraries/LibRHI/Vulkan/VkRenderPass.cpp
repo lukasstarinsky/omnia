@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <cassert>
 #include <format>
 
 #include <LibRHI/Vulkan/VkRenderPass.h>
@@ -14,7 +15,7 @@ namespace RHI {
 
 auto VkRenderPass::create(const RHI::RenderPass::Configuration& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<RHI::VkRenderPass>, std::string>
 {
-    std::unique_ptr<VkRenderPass> render_pass(new VkRenderPass);
+    std::unique_ptr<VkRenderPass> render_pass(new VkRenderPass(config, device));
     render_pass->m_device = device;
     render_pass->m_config = config;
 
@@ -24,6 +25,13 @@ auto VkRenderPass::create(const RHI::RenderPass::Configuration& config, RHI::VkD
     }
 
     return render_pass;
+}
+
+VkRenderPass::VkRenderPass(Configuration const& config, RHI::VkDevice const* device)
+    : m_config(config)
+    , m_device(device)
+{
+    assert(m_device);
 }
 
 VkRenderPass::~VkRenderPass()
@@ -50,8 +58,7 @@ void VkRenderPass::begin(CommandBuffer const* command_buffer, RenderTarget const
         .framebuffer = vk_render_target->framebuffer(),
         .renderArea = {
             .offset = { 0, 0 },
-            .extent = { vk_render_target->width(), vk_render_target->height() }
-        },
+            .extent = { vk_render_target->width(), vk_render_target->height() } },
         .clearValueCount = static_cast<u32>(m_clear_values.size()),
         .pClearValues = m_clear_values.data()
     };
@@ -111,9 +118,7 @@ auto VkRenderPass::create_render_pass() -> std::expected<void, std::string>
                     depth_attachment.clear_color.x,
                     depth_attachment.clear_color.y,
                     depth_attachment.clear_color.z,
-                    depth_attachment.clear_color.w
-                }
-            }
+                    depth_attachment.clear_color.w } }
         };
         m_clear_values.push_back(clear_value);
 

@@ -16,7 +16,7 @@ namespace RHI {
 
 class Shader {
     OA_MAKE_NONCOPYABLE(Shader);
-    OA_MAKE_DEFAULT_MOVABLE(Shader);
+    OA_MAKE_NONMOVABLE(Shader);
 
 public:
     using Configuration = Graphics::ShaderData;

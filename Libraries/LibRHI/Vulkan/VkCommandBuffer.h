@@ -16,8 +16,8 @@ class VkDevice;
 
 class VkCommandBuffer final : public CommandBuffer {
     OA_MAKE_NONCOPYABLE(VkCommandBuffer);
-    OA_MAKE_DEFAULT_CONSTRUCTIBLE(VkCommandBuffer);
     OA_MAKE_DEFAULT_MOVABLE(VkCommandBuffer);
+    OA_MAKE_DEFAULT_CONSTRUCTIBLE(VkCommandBuffer);
 
 public:
     ~VkCommandBuffer() override = default;

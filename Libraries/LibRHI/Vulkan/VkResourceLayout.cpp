@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <cassert>
 #include <format>
 
 #include <LibRHI/Vulkan/VkResourceLayout.h>
@@ -13,8 +14,7 @@ namespace RHI {
 
 auto VkResourceLayout::create(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<VkResourceLayout>, std::string>
 {
-    std::unique_ptr<VkResourceLayout> resource_layout(new VkResourceLayout);
-    resource_layout->m_device = device;
+    std::unique_ptr<VkResourceLayout> resource_layout(new VkResourceLayout(device));
 
     std::vector<VkDescriptorSetLayoutBinding> bindings;
     for (auto const& binding : config.bindings) {
@@ -37,6 +37,12 @@ auto VkResourceLayout::create(Configuration const& config, RHI::VkDevice const* 
     }
 
     return resource_layout;
+}
+
+VkResourceLayout::VkResourceLayout(RHI::VkDevice const* device)
+    : m_device(device)
+{
+    assert(m_device);
 }
 
 VkResourceLayout::~VkResourceLayout()

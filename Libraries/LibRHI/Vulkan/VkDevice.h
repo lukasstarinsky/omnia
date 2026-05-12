@@ -18,9 +18,6 @@
 namespace RHI {
 
 class VkDevice final : public Device {
-    OA_MAKE_NONCOPYABLE(VkDevice);
-    OA_MAKE_DEFAULT_MOVABLE(VkDevice);
-
 public:
     static auto create(Configuration const& config) -> std::expected<std::unique_ptr<VkDevice>, std::string>;
 
@@ -57,7 +54,7 @@ public:
     auto create_swapchain(Swapchain::Configuration const& config) const -> std::expected<std::unique_ptr<Swapchain>, std::string> override;
     auto create_texture(Texture::Configuration const& config) const -> std::expected<std::unique_ptr<Texture>, std::string> override;
 private:
-    VkDevice() = default;
+    VkDevice(Configuration const& config);
 
     auto create_instance() -> std::expected<void, std::string>;
     auto create_surface() -> std::expected<void, std::string>;

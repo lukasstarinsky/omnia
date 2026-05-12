@@ -39,7 +39,7 @@ enum class ImageLayout : u8 {
 
 class RenderPass {
     OA_MAKE_NONCOPYABLE(RenderPass);
-    OA_MAKE_DEFAULT_MOVABLE(RenderPass);
+    OA_MAKE_NONMOVABLE(RenderPass);
 
 public:
     struct Attachment {

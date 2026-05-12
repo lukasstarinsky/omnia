@@ -15,12 +15,7 @@ namespace RHI {
 
 auto VkRenderTarget::create(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<VkRenderTarget>, std::string>
 {
-    assert(config.textures.size() > 0);
-
-    std::unique_ptr<VkRenderTarget> render_target(new VkRenderTarget);
-    render_target->m_device = device;
-    render_target->m_width = config.textures[0]->width();
-    render_target->m_height = config.textures[0]->height();
+    std::unique_ptr<VkRenderTarget> render_target(new VkRenderTarget(config, device));
 
     std::vector<VkImageView> attachments;
 
@@ -55,6 +50,15 @@ auto VkRenderTarget::create(Configuration const& config, RHI::VkDevice const* de
     }
 
     return render_target;
+}
+
+VkRenderTarget::VkRenderTarget(Configuration const& config, RHI::VkDevice const* device)
+    : m_device(device)
+{
+    assert(m_device != nullptr);
+    assert(!config.textures.empty());
+    m_width = config.textures[0]->width();
+    m_height = config.textures[0]->height();
 }
 
 VkRenderTarget::~VkRenderTarget()

@@ -16,9 +16,6 @@
 namespace RHI {
 
 class VkSampler final : public Sampler {
-    OA_MAKE_NONCOPYABLE(VkSampler);
-    OA_MAKE_DEFAULT_MOVABLE(VkSampler);
-
 public:
     static auto create(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<VkSampler>, std::string>;
 
@@ -26,7 +23,7 @@ public:
 
     auto handle() const -> ::VkSampler;
 private:
-    VkSampler() = default;
+    VkSampler(RHI::VkDevice const* device);
 private:
     ::VkSampler m_handle {};
     RHI::VkDevice const* m_device {};

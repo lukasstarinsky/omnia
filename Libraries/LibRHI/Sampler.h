@@ -26,7 +26,7 @@ enum class AddressMode : u8 {
 
 class Sampler {
     OA_MAKE_NONCOPYABLE(Sampler);
-    OA_MAKE_DEFAULT_MOVABLE(Sampler);
+    OA_MAKE_NONMOVABLE(Sampler);
 
 public:
     struct Configuration {

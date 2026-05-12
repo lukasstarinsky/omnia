@@ -20,7 +20,7 @@ enum class ResourceType : u8 {
 
 class ResourceLayout {
     OA_MAKE_NONCOPYABLE(ResourceLayout);
-    OA_MAKE_DEFAULT_MOVABLE(ResourceLayout);
+    OA_MAKE_NONMOVABLE(ResourceLayout);
 
 public:
     struct Binding {

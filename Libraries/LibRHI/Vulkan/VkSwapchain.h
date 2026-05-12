@@ -19,9 +19,6 @@
 namespace RHI {
 
 class VkSwapchain final : public Swapchain {
-    OA_MAKE_NONCOPYABLE(VkSwapchain);
-    OA_MAKE_DEFAULT_MOVABLE(VkSwapchain);
-
 public:
     static auto create(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<VkSwapchain>, std::string>;
 
@@ -39,7 +36,7 @@ public:
     auto begin_frame() -> std::optional<Frame> override;
     void end_frame(Frame const& frame) override;
 private:
-    VkSwapchain() = default;
+    VkSwapchain(Configuration const& config, RHI::VkDevice const* device);
 
     auto select_surface_format() const -> VkSurfaceFormatKHR;
     auto select_present_mode() const -> VkPresentModeKHR;

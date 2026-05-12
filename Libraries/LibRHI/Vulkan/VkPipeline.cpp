@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <cassert>
 #include <format>
 
 #include <LibRHI/Vulkan/VkDevice.h>
@@ -16,9 +17,7 @@ namespace RHI {
 
 auto VkPipeline::create(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<VkPipeline>, std::string>
 {
-    std::unique_ptr<VkPipeline> pipeline(new VkPipeline);
-    pipeline->m_config = config;
-    pipeline->m_device = device;
+    std::unique_ptr<VkPipeline> pipeline(new VkPipeline(config, device));
 
     auto* vk_render_pass = to_vk(config.render_pass)->handle();
     auto* vk_vertex_shader = to_vk(config.vertex_shader)->handle();
@@ -234,6 +233,16 @@ auto VkPipeline::create(Configuration const& config, RHI::VkDevice const* device
     }
 
     return pipeline;
+}
+
+VkPipeline::VkPipeline(Configuration const& config, RHI::VkDevice const* device)
+    : m_config(config)
+    , m_device(device)
+{
+    assert(m_device != nullptr);
+    assert(config.vertex_shader != nullptr);
+    assert(config.fragment_shader != nullptr);
+    assert(config.render_pass != nullptr);
 }
 
 VkPipeline::~VkPipeline()

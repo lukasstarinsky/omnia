@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <cassert>
 #include <format>
 
 #include <LibRHI/Vulkan/VkSampler.h>
@@ -12,8 +13,7 @@ namespace RHI {
 
 auto VkSampler::create(Configuration const& config, RHI::VkDevice const* device) -> std::expected<std::unique_ptr<VkSampler>, std::string>
 {
-    std::unique_ptr<VkSampler> sampler(new VkSampler);
-    sampler->m_device = device;
+    std::unique_ptr<VkSampler> sampler(new VkSampler(device));
 
     VkSamplerCreateInfo const sampler_create_info {
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -41,6 +41,12 @@ auto VkSampler::create(Configuration const& config, RHI::VkDevice const* device)
     }
 
     return sampler;
+}
+
+VkSampler::VkSampler(RHI::VkDevice const* device)
+    : m_device(device)
+{
+    assert(device != nullptr);
 }
 
 VkSampler::~VkSampler()

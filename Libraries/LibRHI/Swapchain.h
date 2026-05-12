@@ -21,7 +21,7 @@ namespace RHI {
 
 class Swapchain {
     OA_MAKE_NONCOPYABLE(Swapchain);
-    OA_MAKE_DEFAULT_MOVABLE(Swapchain);
+    OA_MAKE_NONMOVABLE(Swapchain);
 
 public:
     struct Frame {
