@@ -14,30 +14,28 @@
 
 namespace Concurrency {
 
-enum class ExecutionContext {
+enum class ExecutionThread : u8 {
     Main = 0,
     Worker
 };
 
-struct ScheduledTask {
-    std::coroutine_handle<> handle;
-    ExecutionContext context;
-    std::chrono::steady_clock::time_point ready_time;
-
-    auto operator>(ScheduledTask const& other) const -> bool
-    {
-        return ready_time > other.ready_time;
-    }
-};
-
 class CONCURRENCY_API Scheduler {
 public:
-    Scheduler();
+    struct ScheduledTask {
+        std::coroutine_handle<> handle;
+        ExecutionThread thread {};
+        std::chrono::steady_clock::time_point ready_time;
+
+        auto operator>(ScheduledTask const& other) const -> bool
+        {
+            return ready_time > other.ready_time;
+        }
+    };
+
+    Scheduler() = default;
 
     void schedule(ScheduledTask const& task);
     void update();
-
-    static auto current() -> Scheduler*&;
 private:
     ThreadPool m_thread_pool;
 

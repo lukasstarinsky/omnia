@@ -8,14 +8,6 @@
 
 namespace Concurrency {
 
-Scheduler::Scheduler()
-    : m_thread_pool([this] {
-        Scheduler::current() = this;
-    })
-{
-    current() = this;
-}
-
 void Scheduler::schedule(ScheduledTask const& task)
 {
     if (task.ready_time <= std::chrono::steady_clock::now()) {
@@ -40,7 +32,7 @@ void Scheduler::update()
     auto tasks = m_ready_tasks.collect();
     while (!tasks.empty()) {
         auto& task = tasks.front();
-        if (task.context == ExecutionContext::Main) {
+        if (task.thread == ExecutionThread::Main) {
             task.handle.resume();
         } else {
             m_thread_pool.submit([handle = task.handle] {
@@ -49,12 +41,6 @@ void Scheduler::update()
         }
         tasks.pop();
     }
-}
-
-auto Scheduler::current() -> Scheduler*&
-{
-    thread_local Scheduler* instance = nullptr;
-    return instance;
 }
 
 }

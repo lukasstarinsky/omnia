@@ -6,92 +6,52 @@
 
 #pragma once
 
-#include <cassert>
 #include <chrono>
 #include <coroutine>
 
 #include <LibConcurrency/Scheduler.h>
+#include <LibConcurrency/Export.h>
 
 using namespace std::chrono_literals;
 
 namespace Concurrency {
 
-struct SwitchToMainThread {
-    auto await_ready() const noexcept -> bool
-    {
-        return false;
-    }
+class CONCURRENCY_API Awaitable {
+public:
+    explicit Awaitable(Scheduler& scheduler);
 
-    void await_suspend(std::coroutine_handle<> handle) const noexcept
-    {
-        assert(Scheduler::current() != nullptr && "Awaitable used without a scheduler context.");
-        Scheduler::current()->schedule({
-            .handle = handle,
-            .context = ExecutionContext::Main,
-            .ready_time = std::chrono::steady_clock::time_point::min()
-        });
-    }
+private:
+    struct CONCURRENCY_API NextTickAwaiter {
+        Scheduler& scheduler;
 
-    void await_resume() const noexcept { }
-};
+        auto await_ready() const noexcept -> bool;
+        void await_suspend(std::coroutine_handle<> handle) const noexcept;
+        void await_resume() const noexcept { }
+    };
 
-struct SwitchToWorkerThread {
-    auto await_ready() const noexcept -> bool
-    {
-        return false;
-    }
+    struct CONCURRENCY_API ThreadSwitchAwaiter {
+        Scheduler& scheduler;
+        ExecutionThread target_context;
 
-    void await_suspend(std::coroutine_handle<> handle) const noexcept
-    {
-        assert(Scheduler::current() != nullptr && "Awaitable used without a scheduler context.");
-        Scheduler::current()->schedule({
-            .handle = handle,
-            .context = ExecutionContext::Worker,
-            .ready_time = std::chrono::steady_clock::time_point::min()
-        });
-    }
+        auto await_ready() const noexcept -> bool;
+        void await_suspend(std::coroutine_handle<> handle) const noexcept;
+        void await_resume() const noexcept { }
+    };
 
-    void await_resume() const noexcept { }
-};
+    struct CONCURRENCY_API WaitAwaiter {
+        Scheduler& scheduler;
+        std::chrono::milliseconds duration;
 
-struct Yield {
-    auto await_ready() const noexcept -> bool
-    {
-        return false;
-    }
-
-    void await_suspend(std::coroutine_handle<> handle) const noexcept
-    {
-        assert(Scheduler::current() != nullptr && "Awaitable used without a scheduler context.");
-        Scheduler::current()->schedule({
-            .handle = handle,
-            .context = ExecutionContext::Main,
-            .ready_time = std::chrono::steady_clock::now()
-        });
-    }
-
-    void await_resume() const noexcept { }
-};
-
-struct WaitFor {
-    std::chrono::milliseconds duration;
-
-    auto await_ready() const noexcept -> bool
-    {
-        return duration.count() <= 0;
-    }
-
-    void await_suspend(std::coroutine_handle<> handle) const noexcept
-    {
-        assert(Scheduler::current() != nullptr && "Awaitable used without a scheduler context.");
-        Scheduler::current()->schedule({
-            .handle = handle,
-            .context = ExecutionContext::Main,
-            .ready_time = std::chrono::steady_clock::now() + duration
-        });
-    }
-
-    void await_resume() const noexcept { }
+        auto await_ready() const noexcept -> bool;
+        void await_suspend(std::coroutine_handle<> handle) const noexcept;
+        void await_resume() const noexcept { }
+    };
+public:
+    auto operator()() const -> NextTickAwaiter;
+    auto operator()(ExecutionThread target_context) const -> ThreadSwitchAwaiter;
+    auto operator()(std::chrono::milliseconds duration) const -> WaitAwaiter;
+private:
+    Scheduler& m_scheduler;
 };
 
 }
