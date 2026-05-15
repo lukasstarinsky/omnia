@@ -4,12 +4,16 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include <print>
 #include <gtest/gtest.h>
 
 #include <LibConcurrency/Awaitable.h>
 #include <LibConcurrency/Task.h>
 #include <LibConcurrency/Scheduler.h>
+
+auto sleep_task() -> Concurrency::Task<void>
+{
+    co_await Concurrency::WaitFor(2s);
+}
 
 auto worker_thread_task() -> Concurrency::Task<std::thread::id>
 {
@@ -25,9 +29,26 @@ TEST(Scheduler, WorkerThreadExecution)
     auto worker_thread_task_ = worker_thread_task();
     worker_thread_task_.resume();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    scheduler.update();
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    scheduler.update();
+    while (!worker_thread_task_.done())
+    {
+        scheduler.update();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
     EXPECT_NE(worker_thread_task_.result(), std::this_thread::get_id());
+}
+
+TEST(Scheduler, DelayedTaskExecution)
+{
+    Concurrency::Scheduler scheduler;
+    auto sleep_task_ = sleep_task();
+    sleep_task_.resume();
+
+    auto start_time = std::chrono::steady_clock::now();
+    while (!sleep_task_.done())
+    {
+        scheduler.update();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    auto end_time = std::chrono::steady_clock::now();
+    EXPECT_GE(end_time - start_time, 2s);
 }
