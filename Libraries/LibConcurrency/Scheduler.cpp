@@ -16,25 +16,38 @@ Scheduler::Scheduler()
     current() = this;
 }
 
-void Scheduler::submit_main_thread(std::coroutine_handle<> handle)
+void Scheduler::schedule(ScheduledTask const& task)
 {
-    m_main_thread_queue.push(handle);
-}
-
-void Scheduler::submit_worker_thread(std::coroutine_handle<> handle)
-{
-    m_thread_pool.submit([handle] {
-        handle.resume();
-    });
+    if (task.ready_time <= std::chrono::steady_clock::now()) {
+        m_ready_tasks.push(task);
+    } else {
+        m_delayed_tasks.push(task);
+    }
 }
 
 void Scheduler::update()
 {
-    auto main_thread_queue = m_main_thread_queue.collect();
-    while (!main_thread_queue.empty()) {
-        auto handle = main_thread_queue.front();
-        main_thread_queue.pop();
-        handle.resume();
+    auto now = std::chrono::steady_clock::now();
+
+    while (auto task = m_delayed_tasks.peek()) {
+        if (task->ready_time > now) {
+            break;
+        }
+        m_ready_tasks.push(task.value());
+        m_delayed_tasks.pop();
+    }
+
+    auto tasks = m_ready_tasks.collect();
+    while (!tasks.empty()) {
+        auto& task = tasks.front();
+        if (task.context == ExecutionContext::Main) {
+            task.handle.resume();
+        } else {
+            m_thread_pool.submit([handle = task.handle] {
+                handle.resume();
+            });
+        }
+        tasks.pop();
     }
 }
 

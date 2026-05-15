@@ -24,10 +24,10 @@ public:
         m_result = std::move(value);
     }
 
-    auto result() -> T const&
+    auto result() const -> T const&
     {
         assert(m_result.has_value() && "Result is not available.");
-        return std::move(m_result.value());
+        return m_result.value();
     }
 private:
     std::optional<T> m_result;
@@ -40,7 +40,7 @@ public:
     {
     }
 
-    void result()
+    void result() const
     {
     }
 };
@@ -107,10 +107,16 @@ public:
         m_handle.resume();
     }
 
-    auto result()
+    auto result() const
     {
         assert(m_handle && "Task is not valid.");
         return m_handle.promise().result();
+    }
+
+    auto done() const noexcept -> bool
+    {
+        assert(m_handle && "Task is not valid.");
+        return m_handle.done();
     }
 
     Task(Task&& other) noexcept
