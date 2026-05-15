@@ -1,4 +1,5 @@
 add_subdirectory(LibAudio)
+add_subdirectory(LibConcurrency)
 add_subdirectory(LibCore)
 add_subdirectory(LibEngine)
 add_subdirectory(LibGraphics)
